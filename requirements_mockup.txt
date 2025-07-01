@@ -1,0 +1,5 @@
+# TuoKit Requirements - Minimal Dependencies
+streamlit==1.32.0
+pandas==2.0.3
+# SQLite3 is included with Python
+# Ollama CLI must be installed separately
