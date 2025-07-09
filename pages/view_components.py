@@ -1,11 +1,21 @@
 # pages/view_components.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="View Components - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 def generate_component(description, config):
     """Generate ViewComponent with tests and stimulus integration"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Create ViewComponent for: {description} | Config: {config}",
         system=(
             "Include:\n"
@@ -21,7 +31,7 @@ def generate_component(description, config):
 def generate_usage_example(description):
     """Generate usage examples for the component"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Show usage example for component: {description}",
         system="Render component in ERB view with different props and states"
     )['response']
@@ -80,7 +90,7 @@ def show():
                 # Show different states
                 st.caption("**Component States:**")
                 states = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Show component in different states: {description}",
                     system="Show default, loading, error, and success states"
                 )['response']
@@ -89,7 +99,7 @@ def show():
             with tab3:
                 st.subheader("Component Tests")
                 tests = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate RSpec tests for ViewComponent: {description}",
                     system="Include unit tests, rendering tests, and accessibility tests"
                 )['response']
@@ -100,14 +110,14 @@ def show():
                 st.subheader("Component Styling")
                 if js_framework == "Stimulus":
                     stimulus_controller = safe_ollama_generate(
-                        model="deepseek-coder:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=f"Generate Stimulus controller for: {description}",
                         system="Modern JavaScript with event handling and state management"
                     )['response']
                     st.code(stimulus_controller, language="javascript")
                     
                 styles = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate CSS for component: {description}",
                     system=f"Include {'dark mode' if dark_mode else ''} {'responsive' if responsive else ''} styles"
                 )['response']
@@ -228,7 +238,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="view_components",
-                        model="deepseek-coder:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=description,
                         response=component,
                         metadata={

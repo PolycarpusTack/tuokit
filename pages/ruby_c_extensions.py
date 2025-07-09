@@ -1,11 +1,21 @@
 # pages/ruby_c_extensions.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby C Extensions - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 def create_extension(description, config):
     """Generate safe Ruby C extension"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Create C extension for: {description} | Config: {config}",
         system=(
             "Output complete implementation:\n"
@@ -21,7 +31,7 @@ def create_extension(description, config):
 def generate_benchmarks(description):
     """Generate performance benchmarks for the extension"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Generate benchmarks comparing Ruby vs C extension for: {description}",
         system="Use benchmark-ips to show performance improvement"
     )['response']
@@ -105,7 +115,7 @@ def show():
                 
                 # extconf.rb
                 extconf = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate extconf.rb for C extension: {description}",
                     system=f"Include library checks for: {library_name if library_name else 'standard libs'}"
                 )['response']
@@ -114,7 +124,7 @@ def show():
                 
                 # Rakefile
                 rakefile = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate Rakefile for C extension with compile and test tasks",
                     system="Include rake-compiler tasks"
                 )['response']
@@ -123,7 +133,7 @@ def show():
             with tab3:
                 st.subheader("Extension Tests")
                 tests = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate tests for C extension: {description}",
                     system="Include unit tests, edge cases, and memory leak tests"
                 )['response']
@@ -264,7 +274,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="c_extensions",
-                        model="deepseek-coder:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=description,
                         response=extension,
                         metadata={

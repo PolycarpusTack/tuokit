@@ -42,11 +42,21 @@ DB_USER=ollama_user
 DB_PASSWORD=your_secure_password
 DB_HOST=localhost
 ```
-4. **Database Setup (Optional):**
-Use the provided SQL script for easy setup:
+4. **Database Setup (Optional but Recommended):**
+
+For full functionality including query history and knowledge library:
+
 ```bash
-psql -U postgres -f database_setup.sql
+# Option 1: Run the setup script
+python setup_database.py
+
+# Option 2: Use the SQL file
+psql -U ollama_user -d ollama_knowledge -f setup_database.sql
 ```
+
+See [DATABASE_SETUP.md](DATABASE_SETUP.md) for detailed instructions.
+
+**Note:** If you skip database setup, TuoKit will still work but without persistence features.
 
 Or manually create the database:
 ```sql
@@ -220,6 +230,21 @@ tuokit/
 - Requires admin privileges for some metrics
 - Falls back to "N/A" if permissions insufficient
 
+## 🛠️ Development Setup
+
+### Security and Code Quality Tools
+
+```bash
+# Python security scanning with Bandit
+pip install bandit
+bandit -r . -f json -o security_report.json
+
+# For JavaScript/Frontend development (if needed)
+npm install -g eslint
+```
+
+See [Development Setup Guide](docs/development_setup.md) for detailed instructions.
+
 ## 🤝 Contributing
 
 Follow the TuoKit Architect principles:
@@ -228,6 +253,7 @@ Follow the TuoKit Architect principles:
 3. Add comprehensive error handling
 4. Document with usage examples
 5. Test with actual Ollama models
+6. Run security scans before committing
 
 ## 📝 License
 

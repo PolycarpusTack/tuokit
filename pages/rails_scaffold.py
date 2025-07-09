@@ -5,6 +5,16 @@ Enhanced with framework options and advanced configurations
 """
 
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails Scaffold - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils.ollama import OllamaToolBase
 from utils.database import DatabaseManager
 
@@ -14,7 +24,7 @@ class RailsScaffoldGenerator(OllamaToolBase):
     def __init__(self):
         super().__init__(
             tool_name="rails_scaffold",
-            default_model="deepseek-coder:6.7b"
+            default_model=ModelManager.get_default_model()
         )
         
     def generate_scaffold(self, description: str, rails_version: str = "7.0",

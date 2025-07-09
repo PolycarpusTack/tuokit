@@ -1,5 +1,12 @@
 # pages/exception_advisor.py
 import streamlit as st
+from utils.model_manager import ModelManager
+from utils.annotated_text_helpers import (
+    annotated_text, parse_error_message, highlight_severity,
+    ANNOTATION_COLORS
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 # Page configuration
@@ -9,7 +16,7 @@ st.set_page_config(
     layout="wide"
 )
 
-def analyze_exception_handling(code, language, model="deepseek-coder:6.7b"):
+def analyze_exception_handling(code, language, model=ModelManager.get_default_model()):
     """Analyze exception handling patterns in code"""
     system_prompt = (
         f"You are a senior {language} engineer. Analyze exception handling:\n"
@@ -31,7 +38,7 @@ def analyze_exception_handling(code, language, model="deepseek-coder:6.7b"):
     
     return response.get('response', 'Unable to analyze exception handling')
 
-def generate_handling_strategy(language, system_type, model="deepseek-coder:6.7b"):
+def generate_handling_strategy(language, system_type, model=ModelManager.get_default_model()):
     """Generate exception handling strategy template"""
     system_prompt = (
         f"Create a comprehensive {language} exception handling strategy for {system_type} systems.\n"
@@ -64,7 +71,7 @@ if "db" not in st.session_state:
         st.session_state.db = None
 
 if "selected_model" not in st.session_state:
-    st.session_state.selected_model = "deepseek-coder:6.7b"
+    st.session_state.selected_model = ModelManager.get_default_model()
 
 # Main UI
 st.title("🛡️ Exception Handling Advisor")
@@ -104,6 +111,20 @@ with tab1:
             with st.spinner("Analyzing exception patterns..."):
                 analysis = analyze_exception_handling(code, language, st.session_state.selected_model)
                 st.subheader("Exception Handling Analysis")
+                
+                # Check if the analysis contains exception examples and highlight them
+                if "exception" in analysis.lower() or "error" in analysis.lower():
+                    # Display a sample annotated exception
+                    st.markdown("#### Exception Pattern Detection:")
+                    sample_exceptions = [
+                        ("FileNotFoundError", "error_type", ANNOTATION_COLORS["error_type"]),
+                        (": ", "text", "#000000"),
+                        ("No such file or directory", "error", ANNOTATION_COLORS["error"]),
+                        (" at line ", "text", "#000000"),
+                        ("42", "line_number", ANNOTATION_COLORS["line_number"])
+                    ]
+                    annotated_text(*sample_exceptions)
+                
                 st.markdown(analysis)
                 
                 # Save to knowledge base
@@ -447,7 +468,7 @@ with st.sidebar:
     st.subheader("⚙️ Settings")
     st.session_state.selected_model = st.selectbox(
         "AI Model",
-        options=["deepseek-coder:6.7b", "deepseek-r1:6.7b"],
+        options=get_available_models(),
         index=0
     )
     

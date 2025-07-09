@@ -4,6 +4,16 @@ Creates Morphic UI interfaces for VisualWorks SmallTalk
 """
 
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Morphic Builder - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils.ollama import OllamaToolBase
 from utils.database import DatabaseManager
 
@@ -13,7 +23,7 @@ class MorphicUIBuilder(OllamaToolBase):
     def __init__(self):
         super().__init__(
             tool_name="morphic_builder",
-            default_model="deepseek-coder:6.7b"
+            default_model=ModelManager.get_default_model()
         )
     
     def generate_morphic_ui(self, description: str, theme: str = "System",

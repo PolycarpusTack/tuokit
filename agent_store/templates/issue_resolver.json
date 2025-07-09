@@ -1,0 +1,43 @@
+{
+  "id": "custom.team.support.issue_resolver_v1",
+  "name": "Issue Resolver Template",
+  "version": "1.0.0",
+  "category": "team",
+  "subcategory": "support",
+  "tools": [
+    "analyze_error",
+    "search_knowledge_base",
+    "generate_solution",
+    "create_ticket_response",
+    "escalate_if_needed"
+  ],
+  "prompts": {
+    "analyze_error": "Analyze this error for {client}: {error_message}. Context: {additional_context}. Focus on broadcast-specific issues.",
+    "search_knowledge_base": "Search for similar issues: {search_terms}. Client: {client}. Limit to last {days_back} days.",
+    "generate_solution": "Based on error analysis: {error_analysis}, generate solution steps. Consider {client} specific setup.",
+    "create_ticket_response": "Create professional response for ticket {ticket_id}. Issue: {issue_summary}. Solution: {proposed_solution}",
+    "escalate_if_needed": "Evaluate if escalation needed. Severity: {severity}. Failed attempts: {attempts}. Client SLA: {sla_type}"
+  },
+  "metadata": {
+    "description": "Template for support team issue resolution agents",
+    "tags": ["support", "troubleshooting", "tickets", "template"],
+    "workflow": [
+      "1. Analyze incoming error/issue",
+      "2. Search for similar past issues",
+      "3. Generate solution based on findings",
+      "4. Create customer response",
+      "5. Escalate if cannot resolve"
+    ],
+    "best_practices": [
+      "Always check client-specific configurations",
+      "Reference past successful resolutions",
+      "Maintain professional tone in responses"
+    ]
+  },
+  "permissions": {
+    "teams": ["support", "ops"],
+    "users": ["*"]
+  },
+  "template_name": "issue_resolver",
+  "template_created": "2025-01-08T10:00:00"
+}

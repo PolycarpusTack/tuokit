@@ -1,0 +1,351 @@
+#!/usr/bin/env python3
+"""
+TuoKit CLI - Unified command-line interface
+Replaces all .bat files with cross-platform Python commands
+"""
+
+import click
+import os
+import sys
+import subprocess
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+
+@click.group()
+@click.version_option(version='1.0.0')
+def cli():
+    """TuoKit - AI-powered developer toolkit CLI"""
+    pass
+
+# ========== Main Commands ==========
+
+@cli.command()
+@click.option('--port', default=8501, help='Port to run on')
+@click.option('--debug', is_flag=True, help='Run in debug mode')
+def start(port, debug):
+    """Start TuoKit web application"""
+    click.echo("[START] Starting TuoKit...")
+    
+    env = os.environ.copy()
+    if debug:
+        env['STREAMLIT_LOGGER_LEVEL'] = 'debug'
+    
+    cmd = [sys.executable, "-m", "streamlit", "run", "app.py", "--server.port", str(port)]
+    subprocess.run(cmd, env=env)
+
+@cli.command()
+def setup():
+    """Run initial setup (database + dependencies)"""
+    click.echo("[SETUP] Running TuoKit setup...")
+    
+    # Install dependencies
+    click.echo("\n[DEPS] Installing dependencies...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    
+    # Setup database
+    click.echo("\n[DB] Setting up database...")
+    subprocess.run([sys.executable, "scripts/setup/setup_database.py"])
+    
+    click.echo("\n[OK] Setup complete!")
+
+# ========== Test Commands ==========
+
+@cli.group()
+def test():
+    """Run various tests"""
+    pass
+
+@test.command()
+def all():
+    """Run all tests"""
+    click.echo("[TEST] Running all tests...")
+    subprocess.run([sys.executable, "scripts/testing/run_tests.py"])
+
+@test.command()
+def ollama():
+    """Test Ollama connection"""
+    click.echo("[TEST] Testing Ollama connection...")
+    subprocess.run([sys.executable, "scripts/testing/test_ollama.py"])
+
+@test.command()
+@click.argument('tool_name', required=False)
+def tool(tool_name):
+    """Test a specific tool"""
+    if tool_name:
+        click.echo(f"[TEST] Testing {tool_name}...")
+        test_file = f"scripts/testing/test_{tool_name}.py"
+        if os.path.exists(test_file):
+            subprocess.run([sys.executable, test_file])
+        else:
+            click.echo(f"[ERROR] Test file not found: {test_file}")
+    else:
+        # List available tool tests
+        click.echo("Available tool tests:")
+        test_dir = Path("scripts/testing")
+        for test_file in test_dir.glob("test_*.py"):
+            if test_file.name not in ["test_runner.py", "test_utils.py"]:
+                tool_name = test_file.stem.replace("test_", "")
+                click.echo(f"  - {tool_name}")
+
+# ========== Maintenance Commands ==========
+
+@cli.group()
+def fix():
+    """Fix various issues"""
+    pass
+
+@fix.command()
+def dependencies():
+    """Fix dependency issues (replaces fix_dependencies.bat)"""
+    click.echo("[FIX] Fixing dependencies...")
+    
+    # Upgrade pip
+    click.echo("Upgrading pip...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
+    
+    # Reinstall requirements
+    click.echo("Reinstalling requirements...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--force-reinstall"])
+    
+    # Fix common issues
+    click.echo("Fixing common dependency issues...")
+    
+    # NumPy fix
+    subprocess.run([sys.executable, "-m", "pip", "uninstall", "numpy", "-y"])
+    subprocess.run([sys.executable, "-m", "pip", "install", "numpy==1.26.4"])
+    
+    click.echo("[OK] Dependencies fixed!")
+
+@fix.command()
+def json():
+    """Fix JSON parsing issues"""
+    click.echo("[FIX] Testing JSON parsing...")
+    subprocess.run([sys.executable, "-m", "pytest", "tests/test_json_parsing_fix.py", "-v"])
+
+@fix.command()
+def crash_analyzer():
+    """Test crash analyzer fixes"""
+    click.echo("[FIX] Testing crash analyzer...")
+    
+    # Run the crash analyzer test
+    test_file = "scripts/testing/test_crash_analyzer_enhanced.py"
+    if os.path.exists(test_file):
+        subprocess.run([sys.executable, test_file])
+    else:
+        # Try the tests directory
+        test_file = "tests/test_crash_analyzer_enhanced.py"
+        if os.path.exists(test_file):
+            subprocess.run([sys.executable, test_file])
+        else:
+            click.echo("[ERROR] Crash analyzer test not found")
+
+# ========== Utility Commands ==========
+
+@cli.command()
+def clean():
+    """Clean temporary files and caches"""
+    click.echo("[CLEAN] Cleaning temporary files...")
+    
+    # Remove __pycache__ directories
+    for pycache in Path(".").rglob("__pycache__"):
+        click.echo(f"  Removing {pycache}")
+        import shutil
+        shutil.rmtree(pycache, ignore_errors=True)
+    
+    # Remove .pyc files
+    for pyc in Path(".").rglob("*.pyc"):
+        click.echo(f"  Removing {pyc}")
+        pyc.unlink()
+    
+    click.echo("[OK] Cleanup complete!")
+
+@cli.command()
+def info():
+    """Show TuoKit information"""
+    click.echo("[INFO] TuoKit - AI-powered developer toolkit")
+    click.echo(f"[PATH] Project root: {project_root}")
+    click.echo(f"[PYTHON] Version: {sys.version.split()[0]}")
+    
+    # Check Ollama status
+    try:
+        from utils.ollama import get_ollama_manager
+        manager = get_ollama_manager()
+        status = manager.get_status()
+        if status['running']:
+            click.echo(f"[OLLAMA] Status: OK - Running ({len(status['models'])} models)")
+        else:
+            click.echo("[OLLAMA] Status: ERROR - Not running")
+    except:
+        click.echo("[OLLAMA] Status: UNKNOWN - Could not check")
+    
+    # Check database
+    if os.path.exists("tuokit.db"):
+        size = os.path.getsize("tuokit.db") / 1024 / 1024  # MB
+        click.echo(f"[DB] Status: OK - Found ({size:.1f} MB)")
+    else:
+        click.echo("[DB] Status: ERROR - Not found")
+
+@cli.command()
+@click.argument('query')
+def search(query):
+    """Search for tools by name or description"""
+    click.echo(f"[SEARCH] Searching for: {query}")
+    
+    from utils.navigation import search_tools
+    results = search_tools(query)
+    
+    if results:
+        click.echo(f"\nFound {len(results)} tools:")
+        for tool in results:
+            click.echo(f"\n  {tool['icon']} {tool['name']}")
+            click.echo(f"     {tool['description']}")
+            click.echo(f"     Category: {tool['category']}")
+            click.echo(f"     File: pages/{tool['file']}")
+    else:
+        click.echo("No tools found matching your search.")
+
+# ========== Development Commands ==========
+
+@cli.group()
+def dev():
+    """Development utilities"""
+    pass
+
+@dev.command()
+def shell():
+    """Start interactive Python shell with TuoKit context"""
+    click.echo("[DEV] Starting TuoKit shell...")
+    
+    # Import common modules
+    import code
+    
+    # Prepare namespace
+    namespace = {
+        'Path': Path,
+        'os': os,
+        'sys': sys,
+    }
+    
+    # Try to import TuoKit modules
+    try:
+        from utils import DatabaseManager, safe_ollama_generate
+        namespace.update({
+            'DatabaseManager': DatabaseManager,
+            'safe_ollama_generate': safe_ollama_generate,
+            'db': DatabaseManager()
+        })
+        click.echo("[OK] Loaded TuoKit utilities")
+    except Exception as e:
+        click.echo(f"[WARN] Could not load some utilities: {e}")
+    
+    # Start shell
+    code.interact(local=namespace, banner="TuoKit Interactive Shell\nAvailable: Path, os, sys, DatabaseManager, db, safe_ollama_generate")
+
+@dev.command()
+@click.argument('tool_name')
+def create(tool_name):
+    """Create a new tool from template"""
+    click.echo(f"[CREATE] Creating new tool: {tool_name}")
+    
+    # Convert to snake_case
+    tool_file = tool_name.lower().replace(" ", "_").replace("-", "_") + ".py"
+    tool_path = Path("pages") / tool_file
+    
+    if tool_path.exists():
+        click.echo(f"[ERROR] Tool already exists: {tool_path}")
+        return
+    
+    # Create from template
+    template = '''"""
+{title}
+"""
+
+import streamlit as st
+from utils import TuoKitToolBase
+
+class {class_name}(TuoKitToolBase):
+    def __init__(self):
+        super().__init__(
+            tool_name="{title}",
+            tool_description="AI-powered tool for {description}"
+        )
+    
+    def run(self):
+        st.title("[TOOL] {title}")
+        st.caption(self.tool_description)
+        
+        # Tool implementation here
+        user_input = st.text_area("Enter your request:", height=100)
+        
+        if st.button("Process", type="primary"):
+            if not user_input.strip():
+                st.warning("Please enter a request")
+            else:
+                with st.spinner("Processing..."):
+                    # This automatically captures knowledge!
+                    result = self.generate_with_capture(
+                        prompt=f"Process this request: {{user_input}}",
+                        temperature=0.7
+                    )
+                    
+                    if not result['error']:
+                        st.success("Complete!")
+                        st.write(result['response'])
+                        
+                        # Show save widget
+                        self.show_knowledge_save_widget(
+                            default_title=f"{title} Output",
+                            default_category="Generated Content",
+                            content=result['response']
+                        )
+                    else:
+                        self.handle_error(
+                            Exception(result['response']),
+                            context="AI generation"
+                        )
+        
+        # Show metrics
+        st.divider()
+        self.show_metrics()
+
+# Page setup
+st.set_page_config(
+    page_title="{title}",
+    page_icon="[TOOL]",
+    layout="wide"
+)
+
+# Run the tool
+if __name__ == "__main__":
+    tool = {class_name}()
+    tool.run()
+'''
+    
+    # Format template
+    class_name = ''.join(word.capitalize() for word in tool_name.split())
+    content = template.format(
+        title=tool_name,
+        class_name=class_name,
+        description=tool_name.lower()
+    )
+    
+    # Write file
+    tool_path.write_text(content)
+    click.echo(f"[OK] Created: {tool_path}")
+    
+    # Add to navigation
+    click.echo("\n[TIP] Add this to utils/navigation.py:")
+    click.echo(f'''
+"{tool_file.replace('.py', '')}": {{
+    "name": "{tool_name}",
+    "description": "AI-powered tool for {tool_name.lower()}",
+    "icon": "[TOOL]",
+    "file": "{tool_file}"
+}}
+''')
+
+if __name__ == '__main__':
+    cli()

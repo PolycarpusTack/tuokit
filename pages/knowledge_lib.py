@@ -1,4 +1,6 @@
 import streamlit as st
+
+# Initialize session state
 from utils import DatabaseManager
 import json
 import re
@@ -10,6 +12,12 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
+
+# Import sidebar navigation
+from utils.sidebar_nav import render_sidebar_navigation
+
+# Render sidebar
+render_sidebar_navigation(current_page="knowledge_lib")
 
 def format_knowledge(content, category):
     """Format knowledge content based on its type"""
@@ -30,28 +38,30 @@ def search_knowledge(db, search_term="", category=None):
         return []
     
     try:
-        with db.conn.cursor() as cur:            if category and category != "All":
-                cur.execute("""
-                    SELECT k.id, k.title, k.content, k.category, 
-                           k.created_at as k_created_at,
-                           q.created_at as q_created_at, q.tool, q.model
-                    FROM knowledge_units k
-                    JOIN queries q ON k.query_id = q.id
-                    WHERE (k.title ILIKE %s OR k.content ILIKE %s)
-                    AND k.category = %s
-                    ORDER BY k.created_at DESC
-                """, (f'%{search_term}%', f'%{search_term}%', category))
-            else:
-                cur.execute("""
-                    SELECT k.id, k.title, k.content, k.category,
-                           k.created_at as k_created_at,
-                           q.created_at as q_created_at, q.tool, q.model
-                    FROM knowledge_units k
-                    JOIN queries q ON k.query_id = q.id
-                    WHERE k.title ILIKE %s OR k.content ILIKE %s
-                    ORDER BY k.created_at DESC
-                """, (f'%{search_term}%', f'%{search_term}%'))
-            return cur.fetchall()
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                if category and category != "All":
+                    cur.execute("""
+                        SELECT k.id, k.title, k.content, k.category, 
+                               k.created_at as k_created_at,
+                               q.created_at as q_created_at, q.tool, q.model
+                        FROM knowledge_units k
+                        JOIN queries q ON k.query_id = q.id
+                        WHERE (k.title ILIKE %s OR k.content ILIKE %s)
+                        AND k.category = %s
+                        ORDER BY k.created_at DESC
+                    """, (f'%{search_term}%', f'%{search_term}%', category))
+                else:
+                    cur.execute("""
+                        SELECT k.id, k.title, k.content, k.category,
+                               k.created_at as k_created_at,
+                               q.created_at as q_created_at, q.tool, q.model
+                        FROM knowledge_units k
+                        JOIN queries q ON k.query_id = q.id
+                        WHERE k.title ILIKE %s OR k.content ILIKE %s
+                        ORDER BY k.created_at DESC
+                    """, (f'%{search_term}%', f'%{search_term}%'))
+                return cur.fetchall()
     except Exception as e:
         st.error(f"Search error: {e}")
         return []
@@ -61,7 +71,7 @@ if "db" not in st.session_state:
     try:
         st.session_state.db = DatabaseManager()
     except Exception as e:        st.error(f"Database connection failed: {e}")
-        st.session_state.db = None
+    st.session_state.db = None
 
 # Main content
 st.title("📚 Knowledge Library")
@@ -92,7 +102,8 @@ results = search_knowledge(st.session_state.db, search_term,
                          category if category != "All" else None)
 
 if not results:
-    st.info("No knowledge units found matching your criteria")else:
+    st.info("No knowledge units found matching your criteria")
+else:
     # Results counter and stats
     st.caption(f"Found {len(results)} knowledge units")
     
@@ -149,8 +160,9 @@ if not results:
                 if st.button("🗑️ Delete", key=f"delete_{idx}", use_container_width=True):
                     if st.session_state.get(f"confirm_delete_{idx}", False):
                         try:
-                            with st.session_state.db.conn.cursor() as cur:
-                                cur.execute("DELETE FROM knowledge_units WHERE id = %s", (k_id,))
+                            with st.session_state.db.get_connection() as conn:
+                                with conn.cursor() as cur:
+                                    cur.execute("DELETE FROM knowledge_units WHERE id = %s", (k_id,))
                             st.success("Knowledge unit deleted")
                             st.rerun()
                         except Exception as e:
@@ -170,12 +182,13 @@ if "edit_mode" in st.session_state and st.session_state.edit_mode:
     with col1:
         if st.button("💾 Save Changes", use_container_width=True):
             try:
-                with st.session_state.db.conn.cursor() as cur:
-                    cur.execute("""
-                        UPDATE knowledge_units 
-                        SET title = %s, content = %s 
-                        WHERE id = %s
-                    """, (edited_title, edited_content, st.session_state.edit_mode))
+                with st.session_state.db.get_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("""
+                            UPDATE knowledge_units 
+                            SET title = %s, content = %s 
+                            WHERE id = %s
+                        """, (edited_title, edited_content, st.session_state.edit_mode))
                 st.success("Knowledge unit updated!")
                 del st.session_state.edit_mode
                 del st.session_state.edit_title
@@ -195,29 +208,30 @@ st.divider()
 st.subheader("📊 Knowledge Base Statistics")
 
 try:
-    with st.session_state.db.conn.cursor() as cur:
-        # Total knowledge units
-        cur.execute("SELECT COUNT(*) FROM knowledge_units")
-        total_units = cur.fetchone()[0]
-        
-        # Knowledge by category
-        cur.execute("""
-            SELECT category, COUNT(*) 
-            FROM knowledge_units 
-            GROUP BY category 
-            ORDER BY COUNT(*) DESC
-        """)
-        category_stats = cur.fetchall()
-        
-        # Recent activity
-        cur.execute("""
-            SELECT DATE(created_at) as date, COUNT(*) 
-            FROM knowledge_units 
-            WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY DATE(created_at)
-            ORDER BY date DESC
-        """)
-        recent_activity = cur.fetchall()
+    with st.session_state.db.get_connection() as conn:
+        with conn.cursor() as cur:
+            # Total knowledge units
+            cur.execute("SELECT COUNT(*) FROM knowledge_units")
+            total_units = cur.fetchone()[0]
+            
+            # Knowledge by category
+            cur.execute("""
+                SELECT category, COUNT(*) 
+                FROM knowledge_units 
+                GROUP BY category 
+                ORDER BY COUNT(*) DESC
+            """)
+            category_stats = cur.fetchall()
+            
+            # Recent activity
+            cur.execute("""
+                SELECT DATE(created_at) as date, COUNT(*) 
+                FROM knowledge_units 
+                WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
+                GROUP BY DATE(created_at)
+                ORDER BY date DESC
+            """)
+            recent_activity = cur.fetchall()
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -240,15 +254,16 @@ except Exception as e:
 st.divider()
 if st.button("📥 Export All Knowledge", use_container_width=True):
     try:
-        with st.session_state.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT k.title, k.content, k.category, k.created_at,
-                       q.tool, q.model
-                FROM knowledge_units k
-                JOIN queries q ON k.query_id = q.id
-                ORDER BY k.created_at DESC
-            """)
-            all_knowledge = cur.fetchall()
+        with st.session_state.db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT k.title, k.content, k.category, k.created_at,
+                           q.tool, q.model
+                    FROM knowledge_units k
+                    JOIN queries q ON k.query_id = q.id
+                    ORDER BY k.created_at DESC
+                """)
+                all_knowledge = cur.fetchall()
         
         # Create export content
         export_content = "# TuoKit Knowledge Export\n\n"

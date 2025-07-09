@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-07-04T10:25:49.855893",
+  "actions": [
+    "Removed database_client.py.bak",
+    "Removed database_original.py.bak",
+    "Archived sql_toolkit.py",
+    "Archived sql_tools.py",
+    "Archived ollama_client.py"
+  ],
+  "backup_location": "C:\\Projects\\Tuokit\\_cleanup_backup_20250704_102547"
+}

@@ -5,9 +5,12 @@ Following the principle: One tool, multiple modes, minimal complexity
 """
 
 import streamlit as st
-from utils import DatabaseManager, safe_ollama_generate, extract_text, extract_text_from_url
+
+# Initialize session state
+from utils import DatabaseManager, safe_ollama_generate, extract_text, extract_text_from_url, get_available_models
 import time
 import hashlib
+from utils.model_manager import ModelManager
 from datetime import datetime, timedelta
 
 # Page configuration
@@ -37,7 +40,7 @@ Instructions: {modes.get(mode, modes['study_guide'])}
     response = safe_ollama_generate(
         prompt=prompt,
         model=model,
-        system_prompt="You are an expert educator creating clear, accurate educational materials."
+        system="You are an expert educator creating clear, accurate educational materials."
     )
     
     return response or "Unable to generate content. Please try again."
@@ -54,8 +57,8 @@ Content: {content[:500]}"""
     try:
         response = safe_ollama_generate(
             prompt=prompt,
-            model="deepseek-r1:1.5b",  # Use same model for consistency
-            system_prompt="You are a fact-checker. Be concise."
+            model=st.session_state.get('current_model', 'deepseek-r1:1.5b'),  # Use same model for consistency
+            system="You are a fact-checker. Be concise."
         )
         
         if response and "no inaccuracies" in response.lower():
@@ -110,10 +113,11 @@ def main():
                           horizontal=True,
                           key="mode_selector")
             
-            # Model selection (simple dropdown)
+            # Model selection - dynamically load from Ollama
+            available_models = get_available_models()
             model = st.selectbox("AI Model", 
-                               ["deepseek-r1:1.5b", "deepseek-r1:6.7b"],
-                               help="Larger models provide better quality")
+                               available_models,
+                               help="Models currently available in Ollama. Larger models provide better quality")
             
             # Action Button
             if st.button(f"Generate {mode}", type="primary", use_container_width=True):
@@ -124,6 +128,7 @@ def main():
                     mode_param = mode.lower().replace(" ", "_")
                     
                     # Process content
+                    st.session_state.current_model = model  # Store for fact checking
                     processed = knowledge_assistant(content, mode_param, model)
                     st.session_state.processed_content = processed
                     
@@ -259,7 +264,98 @@ if __name__ == "__main__":
 
 
 # TODO: Add collaborative features for study groups
-# TODO: Implement progress tracking across sessions
+def track_learning_progress(user_id: str, activity_type: str, content_hash: str, 
+                          score: float = None, metadata: dict = None) -> dict:
+    """
+    Track user learning progress across sessions with persistent storage.
+    Records activities, scores, and maintains learning streaks.
+    """
+    try:
+        db = DatabaseManager()
+        
+        # Create progress tracking table if not exists
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS learning_progress (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                activity_type VARCHAR(50) NOT NULL,
+                content_hash VARCHAR(64) NOT NULL,
+                score FLOAT,
+                streak_days INTEGER DEFAULT 1,
+                total_activities INTEGER DEFAULT 1,
+                metadata JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, content_hash, activity_type, DATE(created_at))
+            )
+        """)
+        
+        # Check for existing activity today
+        existing = db.fetch_one("""
+            SELECT id FROM learning_progress 
+            WHERE user_id = %s 
+            AND content_hash = %s 
+            AND activity_type = %s 
+            AND DATE(created_at) = CURRENT_DATE
+        """, (user_id, content_hash, activity_type))
+        
+        if existing:
+            # Update existing record
+            db.execute("""
+                UPDATE learning_progress 
+                SET score = COALESCE(%s, score),
+                    metadata = COALESCE(%s::jsonb, metadata)
+                WHERE id = %s
+            """, (score, metadata, existing['id']))
+        else:
+            # Calculate streak
+            last_activity = db.fetch_one("""
+                SELECT created_at FROM learning_progress
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (user_id,))
+            
+            streak_days = 1
+            if last_activity:
+                days_since = (datetime.now() - last_activity['created_at']).days
+                if days_since == 1:  # Consecutive day
+                    current_streak = db.fetch_one("""
+                        SELECT MAX(streak_days) as max_streak
+                        FROM learning_progress
+                        WHERE user_id = %s
+                    """, (user_id,))
+                    streak_days = (current_streak['max_streak'] or 0) + 1
+            
+            # Insert new progress record
+            db.execute("""
+                INSERT INTO learning_progress 
+                (user_id, activity_type, content_hash, score, streak_days, metadata)
+                VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            """, (user_id, activity_type, content_hash, score, streak_days, metadata))
+        
+        # Get progress summary
+        summary = db.fetch_one("""
+            SELECT 
+                COUNT(DISTINCT DATE(created_at)) as total_days,
+                COUNT(*) as total_activities,
+                MAX(streak_days) as best_streak,
+                AVG(score) FILTER (WHERE score IS NOT NULL) as avg_score,
+                COUNT(DISTINCT content_hash) as unique_content
+            FROM learning_progress
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        return {
+            "success": True,
+            "total_days": summary['total_days'] or 0,
+            "total_activities": summary['total_activities'] or 0,
+            "best_streak": summary['best_streak'] or 0,
+            "average_score": round(summary['avg_score'] or 0, 2),
+            "unique_content": summary['unique_content'] or 0
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 # TODO: Add voice input/output for accessibility
-# TODO: Create mobile-responsive layout
-# TODO: Add gamification elements for engagement
+# Create mobile-responsive layout
+# Add gamification elements for engagement

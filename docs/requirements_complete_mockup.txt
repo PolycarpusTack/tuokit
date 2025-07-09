@@ -1,0 +1,5 @@
+# Requirements for TuoKit Complete Mockup
+streamlit>=1.32.0
+pandas>=2.0.3
+# Note: sqlite3 is included with Python
+# Note: Other imports (json, datetime, etc.) are Python standard library

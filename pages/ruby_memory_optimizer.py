@@ -1,5 +1,15 @@
 # pages/ruby_memory_optimizer.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby Memory Optimizer - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 import re
 
@@ -7,7 +17,7 @@ def analyze_memory(code):
     """Comprehensive memory analysis with optimization suggestions"""
     # Memory report
     report = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Analyze memory usage in:\n```ruby\n{code}\n```",
         system=(
             "Identify:\n"
@@ -21,7 +31,7 @@ def analyze_memory(code):
     
     # Optimized code
     optimized = safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Optimize memory usage for:\n```ruby\n{code}\n```",
         system=(
             "Apply:\n"
@@ -36,7 +46,7 @@ def analyze_memory(code):
     
     # Memory saving estimate
     estimate = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Estimate memory savings after optimization:\nOriginal:\n{code}\nOptimized:\n{optimized}",
         system="Provide percentage estimate of memory reduction"
     )['response']
@@ -201,7 +211,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="memory_optimizer",
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=code[:500],
                         response=f"{report}\n\n{optimized}",
                         metadata={"tags": ["ruby", "performance", "memory"]}

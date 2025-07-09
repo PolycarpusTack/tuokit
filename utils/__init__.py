@@ -1,72 +1,77 @@
-# utils/__init__.py
-"""
-TuoKit Utilities Package
-Modular utilities for clean code organization
-"""
+# TuoKit Utils Module
+# Clean, organized imports for all utilities
 
-from .database import DatabaseManager, DB_CONFIG
-from .ollama import OllamaManager, safe_ollama_generate, OllamaToolBase
-from .system import get_system_stats, get_platform_info
-from .help import get_contextual_help, get_tool_examples, get_all_tools_summary
-from .knowledge import (
-    KnowledgePattern, 
-    KnowledgeExtractor,
-    standardize_knowledge_entry,
-    capture_knowledge
+# Database
+from .database import DatabaseManager, test_database_connection, save_to_knowledge_base
+
+# Ollama
+from .ollama import (
+    get_ollama_manager, 
+    get_available_models, 
+    safe_ollama_generate,
+    test_ollama_setup
 )
-from .knowledge_graph import KnowledgeGraph, knowledge_graph
-from .file_handler import extract_text, extract_text_from_url, validate_file_size
-from .learning_strategy import SimpleLearningStrategy
-from .content_validator import SimpleContentValidator, validate_with_ai
-from .sql_tools import SQLTools, generate_sql, optimize_sql, explain_sql
-from .performance_utils import RubyPerformance
-from .testing_utils import TestGenerator
-from .pattern_utils import PatternMatcher
-from .concurrency_utils import ConcurrencyAnalyzer
-from .graphql_utils import GraphQLHelper
-from .memory_utils import MemoryPatterns, MemoryProfiler
-from .upgrade_utils import RailsUpgrader, UpgradeAutomation
-from .kata_utils import KataGenerator, KataAnalyzer
-from .component_utils import ComponentBuilder, ComponentPatterns
+
+# Knowledge Management
+from .knowledge import KnowledgeExtractor, capture_knowledge
+# Note: knowledge_graph should be imported directly when needed to avoid circular imports
+# from .knowledge_graph import knowledge_graph
+
+# UI/Theme
+from .modern_theme import apply_modern_theme, render_hero_section, render_tool_card
+
+# Base Classes
+from .tool_base import TuoKitToolBase
+
+# Common Utilities
+from .common_utils import *
+from .file_handler import validate_file_size, extract_text, extract_text_from_url
+
+# Navigation
+from .navigation import *
+
+# Help
+from .help import get_contextual_help
+
+# SQL
+# from .sql_tools import SQLTools  # Module archived
+
+# System
+from .system import get_system_stats
 
 __all__ = [
+    # Database
     'DatabaseManager',
-    'DB_CONFIG', 
-    'OllamaManager',
+    'test_database_connection',
+    'save_to_knowledge_base',
+    
+    # Ollama
+    'get_ollama_manager',
+    'get_available_models', 
     'safe_ollama_generate',
-    'OllamaToolBase',
-    'get_system_stats',
-    'get_platform_info',
-    'get_contextual_help',
-    'get_tool_examples',
-    'get_all_tools_summary',
-    'KnowledgePattern',
+    'test_ollama_setup',
+    
+    # Knowledge
     'KnowledgeExtractor',
-    'standardize_knowledge_entry',
     'capture_knowledge',
-    'KnowledgeGraph',
-    'knowledge_graph',
+    
+    # UI/Theme
+    'apply_modern_theme',
+    'render_hero_section',
+    'render_tool_card',
+    
+    # Base Classes
+    'TuoKitToolBase',
+    
+    # Help
+    'get_contextual_help',
+    
+    # SQL
+        # File handling
+    'validate_file_size',
     'extract_text',
     'extract_text_from_url',
-    'validate_file_size',
-    'SimpleLearningStrategy',
-    'SimpleContentValidator',
-    'validate_with_ai',
-    'SQLTools',
-    'generate_sql',
-    'optimize_sql', 
-    'explain_sql',
-    'RubyPerformance',
-    'TestGenerator',
-    'PatternMatcher',
-    'ConcurrencyAnalyzer',
-    'GraphQLHelper',
-    'MemoryPatterns',
-    'MemoryProfiler',
-    'RailsUpgrader',
-    'UpgradeAutomation',
-    'KataGenerator',
-    'KataAnalyzer',
-    'ComponentBuilder',
-    'ComponentPatterns'
+    
+    # System
+    'get_system_stats'
 ]

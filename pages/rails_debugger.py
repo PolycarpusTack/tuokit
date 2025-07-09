@@ -5,6 +5,16 @@ Enhanced with error categorization and solution tracking
 """
 
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails Debugger - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils.ollama import OllamaToolBase
 from utils.database import DatabaseManager
 import re
@@ -16,9 +26,9 @@ class RailsDebugger(OllamaToolBase):
     def __init__(self):
         super().__init__(
             tool_name="rails_debugger",
-            default_model="deepseek-r1:6.7b"
+            default_model=ModelManager.get_default_model()
         )
-        self.coder_model = "deepseek-coder:6.7b"
+        self.coder_model = ModelManager.get_default_model()
     
     def analyze_error(self, error_message: str, context: dict) -> dict:
         """Analyze Rails error with comprehensive context"""

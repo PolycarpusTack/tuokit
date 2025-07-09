@@ -1,0 +1,19 @@
+streamlit==1.33.0
+psycopg2-binary==2.9.9
+ollama==0.3.3  # Updated to available version
+python-dotenv==1.0.1
+pypdf2==3.0.1
+pymupdf==1.24.1
+sqlparse==0.4.4
+pandas==2.2.1
+psutil==5.9.8
+requests==2.31.0
+
+# Optional: For enterprise SQL features
+# sqlalchemy==2.0.30
+# cx-Oracle==8.3.0
+
+# Optional: For advanced Study Guide features
+# nltk==3.8.1
+# beautifulsoup4==4.12.3
+# python-docx==1.1.0

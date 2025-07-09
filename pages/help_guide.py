@@ -131,7 +131,7 @@ elif help_topic == "💻 Code Tools":
         
         **Example prompts hidden in the code:**
         ```python
-        # TODO: Explain the time complexity
+        # COMPLEXITY: Analyze time and space complexity
         # SECURITY: Check for SQL injection
         # PERFORMANCE: Suggest optimizations
         ```

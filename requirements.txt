@@ -1,20 +1,94 @@
-streamlit==1.33.0
-psycopg2-binary==2.9.9
-ollama==0.1.16
-python-dotenv==1.0.1
-pypdf2==3.0.1
-pymupdf==1.24.1
-sqlparse==0.4.4
-pandas==2.2.1
-psutil==5.9.8  # For cross-platform system stats
-requests==2.31.0  # For URL content fetching
+# TuoKit Requirements
+# Python 3.8+ required
 
-# Optional: For enterprise SQL features
-# Uncomment the following if you need database connectivity:
-# sqlalchemy==2.0.30
-# cx-Oracle==8.3.0  # For Oracle support (requires Oracle Instant Client)
+# Core framework
+streamlit>=1.28.0
+streamlit-extras>=0.3.0
+python-dotenv>=1.0.0
 
-# Optional: For advanced Study Guide features
-# nltk==3.8.1  # Natural language processing
-# beautifulsoup4==4.12.3  # Better HTML parsing
-# python-docx==1.1.0  # Better DOCX support
+# Database
+psycopg2-binary>=2.9.9
+# Use psycopg2 instead of psycopg2-binary for production
+
+# HTTP client for Ollama
+requests>=2.31.0
+urllib3>=2.0.0
+ollama>=0.1.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+networkx>=3.0
+sqlparse>=0.4.0
+duckdb>=0.9.0
+
+# File handling
+python-magic>=0.4.27
+pypdf2>=3.0.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+
+# Utilities
+click>=8.1.0
+rich>=13.0.0
+tqdm>=4.65.0
+psutil>=5.9.0
+
+# Security (optional but recommended)
+cryptography>=41.0.0
+
+# Development tools (optional)
+black>=23.0.0
+flake8>=6.0.0
+pytest>=7.4.0
+
+# MultiModal features (optional - for screenshot/document analysis)
+pillow>=10.0.0         # Image processing
+pytesseract>=0.3.10    # OCR for screenshots
+# Note: Also requires Tesseract OCR binary installed separately:
+# - Windows: https://github.com/tesseract-ocr/tesseract
+# - Mac: brew install tesseract  
+# - Linux: apt-get install tesseract-ocr
+
+# =====================================================
+# RAG Toolkit Dependencies (added by TuoKit Architect)
+# =====================================================
+
+# LLM & Embeddings
+sentence-transformers>=2.2.0
+transformers>=4.30.0
+torch>=2.0.0  # CPU version, for GPU use torch==2.0.0+cu118
+
+# Vector Database (PostgreSQL extensions)
+pgvector>=0.2.0
+
+# Document Processing
+llmsearch>=0.3.0  # Main RAG framework
+pypdf>=3.17.0  # Better than pypdf2 for complex PDFs
+python-docx>=1.1.0  # Already listed above
+beautifulsoup4>=4.12.0  # Web scraping
+lxml>=4.9.0  # HTML/XML parsing
+markdownify>=0.11.0  # HTML to Markdown conversion
+
+# Web Scraping
+httpx>=0.25.0  # Modern HTTP client
+playwright>=1.40.0  # For JavaScript-heavy sites (optional)
+
+# Configuration
+pyyaml>=6.0.1
+omegaconf>=2.3.0  # Advanced config management
+
+# Optional but recommended for production
+redis>=5.0.0  # For caching
+celery>=5.3.0  # For async task processing
+
+# Optional document parsing enhancements
+unstructured>=0.10.0  # Advanced document parsing
+pdfplumber>=0.10.0  # Table extraction from PDFs
+camelot-py>=0.11.0  # Advanced table extraction
+# Note: camelot-py requires Ghostscript installed
+
+# Optional for API documentation parsing
+openapi-spec-validator>=0.6.0
+prance>=23.6.0  # OpenAPI/Swagger parsing

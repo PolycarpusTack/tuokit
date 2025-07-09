@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""
+TuoKit Universal Launcher
+Replaces multiple .bat files with single Python CLI
+"""
+
+import click
+import subprocess
+import sys
+import os
+
+@click.group()
+def cli():
+    """TuoKit Developer Portal CLI"""
+    pass
+
+@cli.command()
+def start():
+    """Start TuoKit application"""
+    click.echo("🚀 Starting TuoKit...")
+    subprocess.run([sys.executable, "-m", "streamlit", "run", "app.py"])
+
+@cli.command()
+def test():
+    """Run test suite"""
+    click.echo("🧪 Running tests...")
+    subprocess.run([sys.executable, "scripts/testing/run_tests.py"])
+
+@cli.command()
+def setup():
+    """Setup database and dependencies"""
+    click.echo("⚙️ Setting up TuoKit...")
+    subprocess.run([sys.executable, "scripts/setup/setup_database.py"])
+    
+@cli.command()
+def clean():
+    """Clean and organize project"""
+    click.echo("🧹 Cleaning project...")
+    subprocess.run([sys.executable, "smart_organize.py"])
+
+if __name__ == "__main__":
+    cli()

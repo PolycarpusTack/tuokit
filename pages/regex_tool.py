@@ -1,7 +1,10 @@
 # pages/regex_tool.py
 import streamlit as st
+
+# Initialize session state
 import re
-from utils import DatabaseManager, safe_ollama_generate
+from utils.model_manager import ModelManager
+from utils import DatabaseManager, safe_ollama_generate, get_available_models
 
 # Page configuration
 st.set_page_config(
@@ -74,8 +77,7 @@ if "db" not in st.session_state:
         st.error(f"Database connection failed: {e}")
         st.session_state.db = None
 
-if "selected_model" not in st.session_state:
-    st.session_state.selected_model = "deepseek-coder:6.7b"
+# Model selection will be in sidebar
 
 # Tutorial function
 def show_tutorial():
@@ -132,10 +134,13 @@ with st.sidebar:
     
     # Model selection
     st.subheader("⚙️ Settings")
+    # Model selection - dynamically load from Ollama
+    available_models = get_available_models()
     model = st.selectbox("AI Model", 
-                        ["deepseek-coder:6.7b", "deepseek-r1:6.7b"],
+                        available_models,
                         index=0,
-                        key="regex_model")
+                        key="regex_model",
+                        help="Models currently available in Ollama")
     
     # Show tutorial button
     if st.button("📖 Show Tutorial"):

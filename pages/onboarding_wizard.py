@@ -1,5 +1,8 @@
 import streamlit as st
-from utils import DatabaseManager, safe_ollama_generate
+from utils.model_manager import ModelManager
+
+# Initialize session state
+from utils import DatabaseManager, safe_ollama_generate, get_available_models
 import time
 import json
 
@@ -15,6 +18,11 @@ if "wizard_step" not in st.session_state:
     st.session_state.wizard_step = 0
     st.session_state.wizard_data = {}
     st.session_state.wizard_completed = False
+    
+# Get available models once at startup
+if "wizard_models" not in st.session_state:
+    st.session_state.wizard_models = get_available_models()
+    st.session_state.wizard_model = st.session_state.wizard_models[0] if st.session_state.wizard_models else "deepseek-coder:6.7b"
 
 # Initialize database
 if "db" not in st.session_state:
@@ -32,6 +40,25 @@ steps = [
     "🎯 Practice Exercise",
     "✅ Completion"
 ]
+
+# Sidebar with model selection
+with st.sidebar:
+    st.subheader("🤖 Tutorial Settings")
+    st.session_state.wizard_model = st.selectbox(
+        "AI Model for Tutorial",
+        st.session_state.wizard_models,
+        index=0,
+        help="Model to use during the tutorial"
+    )
+    st.divider()
+    st.caption("Progress")
+    for i, step in enumerate(steps):
+        if i < st.session_state.wizard_step:
+            st.caption(f"✅ {step}")
+        elif i == st.session_state.wizard_step:
+            st.caption(f"👉 **{step}**")
+        else:
+            st.caption(f"• {step}")
 
 # Progress bar
 if st.session_state.wizard_step < len(steps):
@@ -117,7 +144,7 @@ elif st.session_state.wizard_step == 1:
             if st.button("🔍 Analyze This Code", type="primary"):
                 with st.spinner("AI is analyzing..."):
                     response = safe_ollama_generate(
-                        model="deepseek-coder:6.7b",
+                        model=st.session_state.wizard_model,
                         prompt=f"Explain this code and identify the bug:\n```python\n{sample_code}\n```"
                     )
                     st.session_state.wizard_data["code_response"] = response['response']
@@ -136,7 +163,7 @@ elif st.session_state.wizard_step == 1:
             if st.button("🔍 Explain Algorithm", type="primary"):
                 with st.spinner("AI is analyzing..."):
                     response = safe_ollama_generate(
-                        model="deepseek-coder:6.7b",
+                        model=st.session_state.wizard_model,
                         prompt=f"Explain this quicksort implementation step by step:\n```python\n{sample_code}\n```"
                     )
                     st.session_state.wizard_data["code_response"] = response['response']
@@ -150,7 +177,7 @@ elif st.session_state.wizard_step == 1:
             if st.button("🐛 Debug This Error", type="primary"):
                 with st.spinner("AI is debugging..."):
                     response = safe_ollama_generate(
-                        model="deepseek-coder:6.7b",
+                        model=st.session_state.wizard_model,
                         prompt="Fix TypeError: unsupported operand type(s) for /: 'str' and 'int' in: result = user_input / 10"
                     )
                     st.session_state.wizard_data["code_response"] = response['response']
@@ -225,7 +252,7 @@ Timeline: 2 weeks ahead of schedule"""
         if action == "Summarize" and st.button("📝 Generate Summary", type="primary"):
             with st.spinner("Creating summary..."):
                 response = safe_ollama_generate(
-                    model="deepseek-r1:6.7b",
+                    model=st.session_state.wizard_model,
                     prompt=f"Create a 3-bullet executive summary:\n{sample_text}"
                 )
                 st.session_state.wizard_data["doc_response"] = response['response']
@@ -235,7 +262,7 @@ Timeline: 2 weeks ahead of schedule"""
             if st.button("❓ Get Answer", type="primary"):
                 with st.spinner("Finding answer..."):
                     response = safe_ollama_generate(
-                        model="deepseek-r1:6.7b",
+                        model=st.session_state.wizard_model,
                         prompt=f"Answer based on document:\n{sample_text}\n\nQuestion: {question}"
                     )
                     st.session_state.wizard_data["doc_response"] = response['response']
@@ -243,7 +270,7 @@ Timeline: 2 weeks ahead of schedule"""
         elif action == "Extract Data" and st.button("🔍 Extract Structure", type="primary"):
             with st.spinner("Extracting data..."):
                 response = safe_ollama_generate(
-                    model="deepseek-r1:6.7b",
+                    model=st.session_state.wizard_model,
                     prompt=f"Extract key data as JSON from:\n{sample_text}"
                 )
                 st.session_state.wizard_data["doc_response"] = response['response']
@@ -315,7 +342,7 @@ elif st.session_state.wizard_step == 3:
                     if "code_response" in st.session_state.wizard_data:
                         query_id = st.session_state.db.log_query(
                             tool="onboarding_wizard",
-                            model="deepseek-coder:6.7b",
+                            model=ModelManager.get_default_model(),
                             prompt="Tutorial code example",
                             response=st.session_state.wizard_data["code_response"]
                         )
@@ -332,7 +359,7 @@ elif st.session_state.wizard_step == 3:
                     if "doc_response" in st.session_state.wizard_data:
                         query_id = st.session_state.db.log_query(
                             tool="onboarding_wizard",
-                            model="deepseek-r1:6.7b",
+                            model=ModelManager.get_default_model(),
                             prompt="Tutorial document example",
                             response=st.session_state.wizard_data["doc_response"]
                         )
@@ -451,7 +478,7 @@ print(calculate_average([]))  # Crashes!"""
                     prompt = f"Generate a fixed version of this average calculator:\n```python\n{problem_code}\n```"
                 
                 response = safe_ollama_generate(
-                    model="deepseek-coder:6.7b",
+                    model=ModelManager.get_default_model(),
                     prompt=prompt
                 )
                 st.session_state.wizard_data["practice_response"] = response['response']

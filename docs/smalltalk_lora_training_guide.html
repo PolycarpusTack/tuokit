@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smalltalk LoRA Training Guide - TuoKit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 5px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            padding: 0;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+        }
+        .comparison-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step h3 {
+            margin-top: 0;
+        }
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .flow-chart {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .flow-item {
+            background: #3498db;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            margin: 10px;
+        }
+        .arrow {
+            font-size: 24px;
+            color: #3498db;
+            margin: 0 10px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: 2px solid white;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .model-card {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        .model-card h4 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #28a745;
+            height: 100%;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Smalltalk LoRA Training Guide for TuoKit</h1>
+        
+        <div class="info">
+            <strong>📚 Purpose:</strong> Train a local LLM to understand and generate Smalltalk code in your MgX/WHATS'On style, 
+            keeping your proprietary code secure on-premises.
+        </div>
+
+        <h2>🔍 Understanding RAG vs LoRA</h2>
+        
+        <div class="architecture-diagram">
+            <h3>The Key Difference</h3>
+            <div class="flow-chart">
+                <div class="flow-item">Your Code</div>
+                <span class="arrow">→</span>
+                <div class="flow-item" style="background: #e74c3c;">RAG: Search Index</div>
+                <span class="arrow">→</span>
+                <div class="flow-item">Find & Reference</div>
+            </div>
+            <p><strong>RAG:</strong> "Here's what exists in your code"</p>
+            
+            <div class="flow-chart">
+                <div class="flow-item">Your Code</div>
+                <span class="arrow">→</span>
+                <div class="flow-item" style="background: #27ae60;">LoRA: Training</div>
+                <span class="arrow">→</span>
+                <div class="flow-item">Generate New Code</div>
+            </div>
+            <p><strong>LoRA:</strong> "Here's new code in your style"</p>
+        </div>
+
+        <table class="comparison-table">
+            <tr>
+                <th>Aspect</th>
+                <th>RAG (Current)</th>
+                <th>LoRA Fine-Tuning (Proposed)</th>
+            </tr>
+            <tr>
+                <td>Purpose</td>
+                <td>Find and reference existing code</td>
+                <td>Generate new code in your style</td>
+            </tr>
+            <tr>
+                <td>How it works</td>
+                <td>Searches indexed documents</td>
+                <td>Modifies LLM weights to learn patterns</td>
+            </tr>
+            <tr>
+                <td>Can create new modules?</td>
+                <td>❌ No, only references</td>
+                <td>✅ Yes, following your patterns</td>
+            </tr>
+            <tr>
+                <td>Understands Smalltalk idioms?</td>
+                <td>⚠️ Limited</td>
+                <td>✅ Deeply</td>
+            </tr>
+            <tr>
+                <td>Privacy</td>
+                <td>✅ Local search index</td>
+                <td>✅ Local training possible</td>
+            </tr>
+        </table>
+
+        <h2>🚀 Recommended Local Models for Smalltalk</h2>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('deepseek')">DeepSeek (Recommended)</div>
+            <div class="tab" onclick="showTab('codellama')">Code Llama</div>
+            <div class="tab" onclick="showTab('starcoder')">StarCoder</div>
+            <div class="tab" onclick="showTab('comparison')">Full Comparison</div>
+        </div>
+        
+        <div id="deepseek" class="tab-content active">
+            <div class="model-card">
+                <h4>🌟 DeepSeek-Coder (Best for TuoKit)</h4>
+                <p><strong>Why it's perfect for your use case:</strong></p>
+                <ul>
+                    <li>✅ Already using in TuoKit - consistency!</li>
+                    <li>✅ Excellent at understanding code structure</li>
+                    <li>✅ Supports 87 programming languages (including Smalltalk)</li>
+                    <li>✅ Sizes: 1.3B, 6.7B, 33B parameters</li>
+                    <li>✅ Trained on 2T tokens of code</li>
+                </ul>
+                <pre><code># Recommended for your hardware
+deepseek-coder:6.7b-instruct  # Best balance
+deepseek-coder:1.3b           # For limited RAM
+deepseek-coder:33b            # If you have 64GB+ RAM</code></pre>
+            </div>
+        </div>
+        
+        <div id="codellama" class="tab-content">
+            <div class="model-card">
+                <h4>🦙 Code Llama</h4>
+                <p><strong>Meta's code-specific model:</strong></p>
+                <ul>
+                    <li>✅ Purpose-built for code generation</li>
+                    <li>✅ Strong infilling capabilities</li>
+                    <li>⚠️ Less Smalltalk in training data</li>
+                    <li>✅ Sizes: 7B, 13B, 34B parameters</li>
+                </ul>
+                <pre><code># Options
+codellama:7b-instruct
+codellama:13b-instruct
+codellama:34b-instruct</code></pre>
+            </div>
+        </div>
+        
+        <div id="starcoder" class="tab-content">
+            <div class="model-card">
+                <h4>⭐ StarCoder</h4>
+                <p><strong>BigCode's multilingual model:</strong></p>
+                <ul>
+                    <li>✅ Trained on 80+ languages</li>
+                    <li>✅ Good at niche languages</li>
+                    <li>⚠️ Requires more fine-tuning</li>
+                    <li>✅ Size: 15.5B parameters</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="comparison" class="tab-content">
+            <table class="comparison-table">
+                <tr>
+                    <th>Model</th>
+                    <th>Smalltalk Support</th>
+                    <th>RAM Required</th>
+                    <th>Training Speed</th>
+                    <th>TuoKit Compatibility</th>
+                </tr>
+                <tr>
+                    <td>DeepSeek-Coder 6.7B</td>
+                    <td>⭐⭐⭐⭐⭐</td>
+                    <td>16GB</td>
+                    <td>Fast</td>
+                    <td>Perfect (already using)</td>
+                </tr>
+                <tr>
+                    <td>Code Llama 7B</td>
+                    <td>⭐⭐⭐</td>
+                    <td>16GB</td>
+                    <td>Fast</td>
+                    <td>Good</td>
+                </tr>
+                <tr>
+                    <td>StarCoder 15.5B</td>
+                    <td>⭐⭐⭐⭐</td>
+                    <td>32GB</td>
+                    <td>Medium</td>
+                    <td>Good</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>🔧 LoRA Training Solution Design</h2>
+        
+        <div class="architecture-diagram">
+            <h3>Local LoRA Training Architecture</h3>
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNmOGY5ZmEiLz4KICAKICA8IS0tIFN0ZXAgMTogRGF0YSBFeHRyYWN0aW9uIC0tPgogIDxyZWN0IHg9IjIwIiB5PSI1MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI4MCIgZmlsbD0iIzM0OThkYiIgcng9IjEwIi8+CiAgPHRleHQgeD0iOTUiIHk9Ijg1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5DL3doYXRzb248L3RleHQ+CiAgPHRleHQgeD0iOTUiIHk9IjEwNSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtZmFtaWx5PSJBcmlhbCI+U21hbGx0YWxrIENvZGU8L3RleHQ+CiAgCiAgPCEtLSBBcnJvdyAxIC0tPgogIDxsaW5lIHgxPSIxNzAiIHkxPSI5MCIgeDI9IjIxMCIgeTI9IjkwIiBzdHJva2U9IiMzNDk4ZGIiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICAKICA8IS0tIFN0ZXAgMjogVHJhaW5pbmcgRGF0YSAtLT4KICA8cmVjdCB4PSIyMjAiIHk9IjUwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMjdhZTYwIiByeD0iMTAiLz4KICA8dGV4dCB4PSIyOTUiIHk9Ijg1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5UcmFpbmluZyBEYXRhPC90ZXh0PgogIDx0ZXh0IHg9IjI5NSIgeT0iMTA1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IkFyaWFsIj5JbnN0cnVjdGlvbiBQYWlyczwvdGV4dD4KICAKICA8IS0tIEFycm93IDIgLS0+CiAgPGxpbmUgeDE9IjM3MCIgeTE9IjkwIiB4Mj0iNDEwIiB5Mj0iOTAiIHN0cm9rZT0iIzI3YWU2MCIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPgogIAogIDwhLS0gU3RlcCAzOiBMb1JBIFRyYWluaW5nIC0tPgogIDxyZWN0IHg9IjQyMCIgeT0iNTAiIHdpZHRoPSIxNTAiIGhlaWdodD0iODAiIGZpbGw9IiNlNzRjM2MiIHJ4PSIxMCIvPgogIDx0ZXh0IHg9IjQ5NSIgeT0iODUiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE0IiBmb250LWZhbWlseT0iQXJpYWwiPkxvUkEgVHJhaW5pbmc8L3RleHQ+CiAgPHRleHQgeD0iNDk1IiB5PSIxMDUiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiPkxvY2FsIEdQVTwvdGV4dD4KICAKICA8IS0tIEFycm93IDMgLS0+CiAgPGxpbmUgeDE9IjU3MCIgeTE9IjkwIiB4Mj0iNjEwIiB5Mj0iOTAiIHN0cm9rZT0iI2U3NGMzYyIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPgogIAogIDwhLS0gU3RlcCA0OiBGaW5hbCBNb2RlbCAtLT4KICA8cmVjdCB4PSI2MjAiIHk9IjUwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjOTU0NmNhIiByeD0iMTAiLz4KICA8dGV4dCB4PSI2OTUiIHk9Ijg1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5NZ1ggU21hbGx0YWxrPC90ZXh0PgogIDx0ZXh0IHg9IjY5NSIgeT0iMTA1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IkFyaWFsIj5Mb1JBIE1vZGVsPC90ZXh0PgogIAogIDwhLS0gUG9zdGdyZVMgRGF0YWJhc2UgLS0+CiAgPHJlY3QgeD0iMjIwIiB5PSIyMDAiIHdpZHRoPSIzNTAiIGhlaWdodD0iMTIwIiBmaWxsPSIjMzQ5OGRiIiBmaWxsLW9wYWNpdHk9IjAuMiIgc3Ryb2tlPSIjMzQ5OGRiIiBzdHJva2Utd2lkdGg9IjIiIHJ4PSIxMCIvPgogIDx0ZXh0IHg9IjM5NSIgeT0iMjI1IiBmaWxsPSIjMzQ5OGRiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIj5Qb3N0Z3JlU1FMIFRyYWluaW5nIFN0b3JlPC90ZXh0PgogIDx0ZXh0IHg9IjM5NSIgeT0iMjUwIiBmaWxsPSIjMzQ5OGRiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiPi0gUXVlc3Rpb25zICYgVmVyaWZpZWQgQW5zd2VyczwvdGV4dD4KICA8dGV4dCB4PSIzOTUiIHk9IjI3MCIgZmlsbD0iIzM0OThkYiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IkFyaWFsIj4tIENvZGUgRXhhbXBsZXMgJiBQYXR0ZXJuczwvdGV4dD4KICA8dGV4dCB4PSIzOTUiIHk9IjI5MCIgZmlsbD0iIzM0OThkYiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IkFyaWFsIj4tIFRyYWluaW5nIE1ldHJpY3M8L3RleHQ+CiAgCiAgPCEtLSBDb25uZWN0aW9uIGZyb20gVHJhaW5pbmcgRGF0YSB0byBQb3N0Z3JlUyAtLT4KICA8bGluZSB4MT0iMjk1IiB5MT0iMTMwIiB4Mj0iMjk1IiB5Mj0iMjAwIiBzdHJva2U9IiMyN2FlNjAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+CiAgCiAgPCEtLSBDb25uZWN0aW9uIGZyb20gTG9SQSBUcmFpbmluZyB0byBQb3N0Z3JlUyAtLT4KICA8bGluZSB4MT0iNDk1IiB5MT0iMTMwIiB4Mj0iNDk1IiB5Mj0iMjAwIiBzdHJva2U9IiNlNzRjM2MiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWRhc2hhcnJheT0iNSw1Ii8+CiAgCiAgPCEtLSBBcnJvdyBtYXJrZXIgZGVmaW5pdGlvbiAtLT4KICA8ZGVmcz4KICAgIDxtYXJrZXIgaWQ9ImFycm93IiBtYXJrZXJXaWR0aD0iMTAiIG1hcmtlckhlaWdodD0iMTAiIHJlZlg9IjkiIHJlZlk9IjMiIG9yaWVudD0iYXV0byIgbWFya2VyVW5pdHM9InN0cm9rZVdpZHRoIj4KICAgICAgPHBhdGggZD0iTTAsMCBMOSwzIEwwLDYgeiIgZmlsbD0iaW5oZXJpdCIvPgogICAgPC9tYXJrZXI+CiAgPC9kZWZzPgo8L3N2Zz4=" alt="LoRA Training Architecture" style="max-width: 100%;">
+        </div>
+
+        <h2>📝 Step-by-Step Implementation Guide</h2>
+        
+        <div class="step">
+            <h3>Step 1: Extract Training Data from C:/whatson</h3>
+            <pre><code># Run the training data extractor
+python toolkits/llm_rag_v2/smalltalk_trainer.py
+
+# This will create:
+# - mgx_smalltalk_training.jsonl (raw examples)
+# - mgx_smalltalk_training.train.jsonl (90% for training)
+# - mgx_smalltalk_training.val.jsonl (10% for validation)</code></pre>
+            
+            <div class="info">
+                <strong>What happens:</strong> Extracts patterns from your .st files including:
+                <ul>
+                    <li>Class definitions (Store subclasses, etc.)</li>
+                    <li>Method implementations</li>
+                    <li>Validation patterns</li>
+                    <li>MgX-specific idioms</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Install Local Training Tools</h3>
+            <pre><code># Option A: Using Ollama (Simplest)
+# Already installed for TuoKit!
+
+# Option B: Using Unsloth (More control)
+pip install unsloth
+pip install xformers trl peft accelerate bitsandbytes
+
+# Option C: Using LLaMA Factory (GUI option)
+git clone https://github.com/hiyouga/LLaMA-Factory.git
+cd LLaMA-Factory
+pip install -r requirements.txt</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Configure LoRA Training</h3>
+            <pre><code># training_config.yaml
+model_name: deepseek-coder:6.7b
+lora_config:
+  r: 16                    # LoRA rank
+  lora_alpha: 32          # LoRA scaling
+  target_modules:         # Which layers to train
+    - q_proj
+    - v_proj
+  lora_dropout: 0.1
+  
+training_args:
+  num_epochs: 3
+  learning_rate: 2e-4
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  warmup_steps: 100
+  save_steps: 500
+  
+data:
+  train_file: mgx_smalltalk_training.train.jsonl
+  val_file: mgx_smalltalk_training.val.jsonl</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>Step 4: Train Your LoRA Model</h3>
+            <pre><code># Using Python script
+python train_smalltalk_lora.py \
+  --base_model deepseek-coder:6.7b \
+  --data_path mgx_smalltalk_training.jsonl \
+  --output_dir ./mgx-smalltalk-lora \
+  --num_epochs 3 \
+  --learning_rate 2e-4</code></pre>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%">Training Progress: 0%</div>
+            </div>
+            
+            <p><strong>Training time estimate:</strong> 2-6 hours on RTX 3090/4090</p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 5: Test Your Model</h3>
+            <pre><code># Load the LoRA model
+from peft import PeftModel
+model = PeftModel.from_pretrained(
+    base_model,
+    "./mgx-smalltalk-lora"
+)
+
+# Test generation
+prompt = "Create a Smalltalk Store subclass for Netflix streaming rights"
+response = model.generate(prompt)
+print(response)</code></pre>
+        </div>
+
+        <h2>💾 Using PostgreSQL for Training Data</h2>
+        
+        <div class="success">
+            <strong>✅ YES!</strong> You can absolutely store Q&A pairs in PostgreSQL and use them for training!
+        </div>
+        
+        <div class="architecture-diagram">
+            <h3>PostgreSQL Training Pipeline</h3>
+            <pre><code>-- Create training data tables
+CREATE TABLE smalltalk_training_examples (
+    id SERIAL PRIMARY KEY,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    code_context TEXT,
+    verified BOOLEAN DEFAULT FALSE,
+    quality_score FLOAT,
+    source_file VARCHAR(255),
+    pattern_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT NOW(),
+    verified_by VARCHAR(100),
+    used_in_training BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE training_feedback (
+    id SERIAL PRIMARY KEY,
+    example_id INTEGER REFERENCES smalltalk_training_examples(id),
+    helpful BOOLEAN,
+    corrected_answer TEXT,
+    feedback_text TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert examples from RAG interactions
+INSERT INTO smalltalk_training_examples (question, answer, verified)
+SELECT 
+    query as question,
+    answer,
+    TRUE as verified
+FROM rag_interactions
+WHERE feedback_score > 0.8;</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>Building Training Data from User Interactions</h3>
+            <pre><code># Extract verified Q&A pairs from PostgreSQL
+import psycopg2
+import json
+
+def extract_training_from_postgres():
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    
+    # Get verified Q&A pairs
+    cur.execute("""
+        SELECT question, answer, code_context
+        FROM smalltalk_training_examples
+        WHERE verified = TRUE
+        AND quality_score > 0.7
+        AND NOT used_in_training
+    """)
+    
+    training_data = []
+    for question, answer, context in cur.fetchall():
+        training_data.append({
+            "instruction": question,
+            "input": context or "",
+            "output": answer
+        })
+    
+    # Mark as used
+    cur.execute("""
+        UPDATE smalltalk_training_examples
+        SET used_in_training = TRUE
+        WHERE verified = TRUE
+    """)
+    
+    conn.commit()
+    return training_data</code></pre>
+        </div>
+
+        <h2>🔄 Continuous Learning Loop</h2>
+        
+        <div class="flow-chart">
+            <div class="flow-item">Users Ask Questions</div>
+            <span class="arrow">→</span>
+            <div class="flow-item">RAG Provides Answers</div>
+            <span class="arrow">→</span>
+            <div class="flow-item">Users Verify/Correct</div>
+            <span class="arrow">→</span>
+            <div class="flow-item">Store in PostgreSQL</div>
+            <span class="arrow">→</span>
+            <div class="flow-item">Periodic LoRA Training</div>
+            <span class="arrow">→</span>
+            <div class="flow-item">Better Model</div>
+        </div>
+
+        <h2>⚠️ Important Considerations</h2>
+        
+        <div class="warning">
+            <h4>🔒 Security & Legal</h4>
+            <ul>
+                <li>✅ All training happens locally - no cloud exposure</li>
+                <li>✅ Your proprietary code never leaves your infrastructure</li>
+                <li>✅ LoRA weights can be encrypted and access-controlled</li>
+                <li>⚠️ Document your training data sources for compliance</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <h4>📊 Resource Requirements</h4>
+            <ul>
+                <li><strong>GPU:</strong> NVIDIA RTX 3090/4090 or better (24GB VRAM)</li>
+                <li><strong>RAM:</strong> 32GB minimum, 64GB recommended</li>
+                <li><strong>Storage:</strong> 100GB for models and training data</li>
+                <li><strong>Time:</strong> 2-6 hours initial training, 30min incremental</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Expected Outcomes</h2>
+        
+        <table class="comparison-table">
+            <tr>
+                <th>Capability</th>
+                <th>Before LoRA</th>
+                <th>After LoRA Training</th>
+            </tr>
+            <tr>
+                <td>Generate MgX module</td>
+                <td>Generic Smalltalk (often wrong)</td>
+                <td>Perfect MgX-style code</td>
+            </tr>
+            <tr>
+                <td>Understand your patterns</td>
+                <td>No knowledge</td>
+                <td>Follows your conventions</td>
+            </tr>
+            <tr>
+                <td>Suggest architecture</td>
+                <td>Generic advice</td>
+                <td>Based on your system</td>
+            </tr>
+            <tr>
+                <td>Debug MgX code</td>
+                <td>Basic syntax help</td>
+                <td>Knows your error patterns</td>
+            </tr>
+        </table>
+
+        <h2>🚀 Quick Start Commands</h2>
+        
+        <pre><code># 1. Extract training data
+cd /mnt/c/Projects/Tuokit
+python toolkits/llm_rag_v2/smalltalk_trainer.py
+
+# 2. Review extracted examples
+head -20 mgx_smalltalk_training.jsonl
+
+# 3. Start training (using Ollama)
+ollama create mgx-smalltalk \
+  --file Modelfile \
+  --quantize q4_K_M
+
+# 4. Test the model
+ollama run mgx-smalltalk "Create a Store subclass for streaming rights"
+
+# 5. Integrate with TuoKit
+# Update model_manager.py to include your LoRA model</code></pre>
+
+        <div class="success">
+            <h3>✨ Your Next Steps</h3>
+            <ol>
+                <li>Run the training data extractor on C:/whatson</li>
+                <li>Review the extracted patterns</li>
+                <li>Start with a small LoRA training run (1 epoch)</li>
+                <li>Test generation quality</li>
+                <li>Iterate and improve</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Mark tab as active
+            event.target.classList.add('active');
+        }
+        
+        // Simulate training progress
+        function simulateTraining() {
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-fill');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = `Training Progress: ${Math.round(progress)}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressBar.style.background = '#28a745';
+                    progressBar.textContent = 'Training Complete! 🎉';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

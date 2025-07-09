@@ -1,11 +1,21 @@
 # pages/rails_graphql.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails Graphql - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 def build_graphql_api(resource, operations):
     """Generate GraphQL API implementation"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Create GraphQL API for {resource} with operations: {', '.join(operations)}",
         system=(
             "Implement complete solution using graphql-ruby gem:\n"
@@ -21,7 +31,7 @@ def build_graphql_api(resource, operations):
 def generate_example_query(resource, query_type):
     """Generate example GraphQL query"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Generate GraphQL {query_type} for {resource}",
         system="Create sample query with nested fields, variables, and fragments"
     )['response']
@@ -100,7 +110,7 @@ def show():
             
             with tab3:
                 test_code = safe_ollama_generate(
-                    model="deepseek-coder:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Generate RSpec tests for GraphQL {resource} API",
                     system="Include query, mutation, and error case tests"
                 )['response']
@@ -176,7 +186,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="graphql_api",
-                        model="deepseek-coder:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=full_prompt,
                         response=code,
                         metadata={

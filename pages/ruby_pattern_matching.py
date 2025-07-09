@@ -1,11 +1,21 @@
 # pages/ruby_pattern_matching.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby Pattern Matching - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 def explain_pattern_matching(code):
     """Explain pattern matching with real-world examples"""
     return safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Explain pattern matching in:\n```ruby\n{code}\n```",
         system=(
             "Provide 3 sections:\n"
@@ -19,7 +29,7 @@ def explain_pattern_matching(code):
 def generate_pattern_example(description):
     """Generate pattern matching examples"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Create pattern matching example for: {description}",
         system=(
             "Output working Ruby code with:\n"
@@ -96,7 +106,7 @@ def show():
                     if db.connected:
                         query_id = db.log_query(
                             tool="pattern_matching",
-                            model="deepseek-coder:latest",
+                            model=ModelManager.get_default_model(),
                             prompt=description,
                             response=example,
                             metadata={"tags": ["ruby", "pattern_matching"], "complexity": complexity}
@@ -124,7 +134,7 @@ def show():
         **Data Validation:**
         ```ruby
         case user_data
-        in {email: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i, age: 18..}
+        in {email: /\\A[\\w+\\-.]+@[a-z\\d\\-]+(\\.[a-z\\d\\-]+)*\\.[a-z]+\\z/i, age: 18..}
           create_user(user_data)
         else
           reject_invalid_data

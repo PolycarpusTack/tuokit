@@ -5,6 +5,7 @@ import tempfile
 import os
 from pathlib import Path
 
+from utils.model_manager import ModelManager
 # Page configuration
 st.set_page_config(
     page_title="TuoKit - Document Tools",
@@ -29,7 +30,8 @@ def extract_text(uploaded_file):
             text = ""
             for page in doc:
                 text += page.get_text()
-            return text        except ImportError:
+            return text      
+        except ImportError:
             # Fallback to PyPDF2
             try:
                 from PyPDF2 import PdfReader
@@ -114,10 +116,13 @@ if 'doc_text' not in st.session_state:
 if 'doc_summary' not in st.session_state:
     st.session_state.doc_summary = None
 
-# Model selection
+# Model selection - dynamically load from Ollama
+from utils import get_available_models
+available_models = get_available_models()
 model = st.selectbox("AI Model", 
-                    ["deepseek-r1:6.7b", "deepseek-r1:1.5b"],
-                    index=0)
+                    available_models,
+                    index=0,
+                    help="Models currently available in Ollama")
 
 # Process document on upload
 if uploaded_file is not None:
@@ -213,7 +218,8 @@ elif tool == "Extract Knowledge" and st.session_state.doc_text:
                 )
             
             # Try to parse JSON output
-            try:                import json
+            try:
+                import json
                 parsed = json.loads(knowledge)
                 st.subheader("Extracted Knowledge")
                 st.json(parsed)

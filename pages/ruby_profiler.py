@@ -1,5 +1,15 @@
 # pages/ruby_profiler.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby Profiler - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 import re
 
@@ -7,21 +17,21 @@ def analyze_performance(code):
     """Comprehensive performance analysis with optimization suggestions"""
     # Complexity analysis
     complexity_report = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Analyze computational complexity:\n```ruby\n{code}\n```",
         system="Identify time/space complexity (Big O), highlight bottlenecks, and suggest algorithmic improvements"
     )['response']
     
     # Optimization suggestions
     optimized_code = safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Optimize performance of:\n```ruby\n{code}\n```",
         system="Apply: Lazy loading, memoization, database batching, algorithmic improvements. Preserve functionality."
     )['response']
     
     # Memory analysis
     memory_report = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Analyze memory usage:\n```ruby\n{code}\n```",
         system="Identify object allocation hotspots, memory retention issues, and GC pressure points"
     )['response']
@@ -110,7 +120,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="ruby_profiler",
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=code[:500],
                         response=f"{complexity_report}\n\n{optimized_code}",
                         metadata={"tags": ["ruby", "performance"]}

@@ -1,0 +1,46 @@
+{
+  "id": "custom.team.legal.compliance_checker_v1",
+  "name": "Compliance Checker Template",
+  "version": "1.0.0",
+  "category": "team",
+  "subcategory": "legal",
+  "tools": [
+    "scan_document",
+    "check_regulations",
+    "identify_risks",
+    "generate_compliance_report",
+    "track_compliance_status"
+  ],
+  "prompts": {
+    "scan_document": "Scan {document_type} for compliance requirements. Focus on: {regulations}. Industry: broadcast software.",
+    "check_regulations": "Check compliance with {regulation_list}. Document section: {section_text}. Highlight any violations.",
+    "identify_risks": "Identify compliance risks in: {content}. Severity levels: high/medium/low. Consider broadcast industry specifics.",
+    "generate_compliance_report": "Generate compliance report for {document_name}. Regulations checked: {regulations}. Include recommendations.",
+    "track_compliance_status": "Update compliance tracking for {component}. Status: {status}. Notes: {notes}. Next review: {review_date}"
+  },
+  "metadata": {
+    "description": "Template for legal team compliance checking agents",
+    "tags": ["legal", "compliance", "regulations", "template"],
+    "supported_regulations": [
+      "FCC",
+      "GDPR",
+      "CCPA",
+      "COPPA",
+      "HIPAA",
+      "SOC2"
+    ],
+    "document_types": [
+      "contracts",
+      "licenses",
+      "privacy_policies",
+      "terms_of_service",
+      "sla_agreements"
+    ]
+  },
+  "permissions": {
+    "teams": ["legal", "compliance"],
+    "users": ["legal_team"]
+  },
+  "template_name": "compliance_checker",
+  "template_created": "2025-01-08T10:00:00"
+}

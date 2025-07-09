@@ -1,0 +1,37 @@
+{
+  "id": "custom.client.generic.stream_monitor_v1",
+  "name": "Stream Monitor Template",
+  "version": "1.0.0",
+  "category": "client",
+  "subcategory": "generic",
+  "tools": [
+    "check_stream_status",
+    "analyze_stream_quality",
+    "monitor_bitrate",
+    "check_latency",
+    "alert_on_issue"
+  ],
+  "prompts": {
+    "check_stream_status": "Check the status of {protocol} stream at {url}. Look for: connection state, active viewers, uptime",
+    "analyze_stream_quality": "Analyze quality metrics for stream {stream_id}: bitrate stability, frame drops, buffer health",
+    "monitor_bitrate": "Monitor bitrate for {stream_url}. Expected: {expected_bitrate}, tolerance: {tolerance}%",
+    "check_latency": "Measure end-to-end latency for {stream_url}. Acceptable range: {min_latency}-{max_latency}ms",
+    "alert_on_issue": "Send alert for {issue_type} on {stream_id}. Severity: {severity}. Details: {details}"
+  },
+  "metadata": {
+    "description": "Template for creating client-specific stream monitoring agents",
+    "tags": ["monitoring", "streaming", "client", "template"],
+    "use_cases": [
+      "24/7 stream monitoring",
+      "Quality assurance",
+      "Proactive issue detection"
+    ],
+    "customization_guide": "Replace 'generic' with client name, adjust tools and prompts for specific protocols"
+  },
+  "permissions": {
+    "teams": ["ops", "support"],
+    "users": ["*"]
+  },
+  "template_name": "stream_monitor",
+  "template_created": "2025-01-08T10:00:00"
+}

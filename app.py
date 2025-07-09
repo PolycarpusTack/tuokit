@@ -1,23 +1,32 @@
 import streamlit as st
-from utils import OllamaManager, DatabaseManager, get_system_stats
+from utils import (
+    DatabaseManager, 
+    get_system_stats, 
+    get_available_models,
+    apply_modern_theme,
+    render_hero_section
+)
+from utils.navigation import NAVIGATION_CATEGORIES, get_tool_count, get_category_count, search_tools
+from utils.model_manager import ModelManager
+import json
 
-# Initialize session state
+# Initialize session state with dynamic model selection
 if "selected_model" not in st.session_state:
-    st.session_state.selected_model = "deepseek-coder:6.7b"
+    st.session_state.selected_model = ModelManager.get_default_model()
 if "db" not in st.session_state:
     try:
         st.session_state.db = DatabaseManager()
     except Exception as e:
         st.error(f"Database connection failed. Please check your configuration: {e}")
         st.session_state.db = None
+if "show_command_palette" not in st.session_state:
+    st.session_state.show_command_palette = False
 
 # Check for first run
 if "first_run_checked" not in st.session_state:
     st.session_state.first_run_checked = True
-    # Check if user should see onboarding
     if st.session_state.db:
         try:
-            # Simple check: if no queries exist, likely first run
             count = st.session_state.db.get_knowledge_count()
             recent = st.session_state.db.get_recent_queries(limit=1)
             if count == 0 and len(recent) == 0:
@@ -27,286 +36,275 @@ if "first_run_checked" not in st.session_state:
 
 # Page configuration
 st.set_page_config(
-    page_title="TuoKit Dashboard",
-    page_icon="🧠",
-    layout="wide"
+    page_title="TuoKit - AI Development Companion",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# --- Sidebar ---
-with st.sidebar:
-    st.title("TuoKit Control Panel")
-    
-    # Model selection
-    st.subheader("AI Engine")
-    model_options = ["deepseek-coder:6.7b", "deepseek-r1:6.7b", "deepseek-r1:1.5b"]
-    st.selectbox("Active Model", model_options, key="selected_model")    
-    # Quick actions
-    st.divider()
-    st.subheader("Quick Actions")
-    if st.button("🔄 Check Ollama Status", use_container_width=True):
-        st.session_state.ollama_status = OllamaManager.get_status()
-    
-    if st.button("📊 Update Stats", use_container_width=True):
-        st.session_state.system_stats = get_system_stats()
-        if st.session_state.db:
-            st.session_state.recent_queries = st.session_state.db.get_recent_queries()
-        else:
-            st.session_state.recent_queries = []
-    
-    # System info
-    st.divider()
-    st.subheader("System Info")
-    stats = get_system_stats() if "system_stats" not in st.session_state else st.session_state.system_stats
-    st.metric("CPU Usage", stats["cpu"])
-    st.metric("Memory Usage", stats["memory"])
-    
-    # Navigation
-    st.divider()
-    st.subheader("Tools Navigation")
-    st.page_link("app.py", label="📊 Dashboard", icon="📊")
-    st.page_link("pages/code_tools.py", label="💻 Code Tools", icon="💻")
-    st.page_link("pages/doc_tools.py", label="📄 Document Tools", icon="📄")
-    st.page_link("pages/study_guide_generator.py", label="📚 Study Guide", icon="📚")
-    st.page_link("pages/edu_mind.py", label="🎓 EduMind", icon="🎓")
-    st.page_link("pages/sql_generator.py", label="🛢️ SQL Generator", icon="🛢️")
-    st.page_link("pages/sql_optimizer.py", label="🔍 SQL Optimizer", icon="🔍")
-    st.page_link("pages/sql_pipeline.py", label="🔄 SQL Pipeline", icon="🔄")
-    
-    # SmallTalk & Rails Development Tools
-    st.caption("SmallTalk & Rails")
-    st.page_link("pages/smalltalk_explainer.py", label="🧑‍🏫 SmallTalk Explainer", icon="🧑‍🏫")
-    st.page_link("pages/smalltalk_class_gen.py", label="🏗️ ST Class Generator", icon="🏗️")
-    st.page_link("pages/morphic_builder.py", label="🎨 Morphic UI Builder", icon="🎨")
-    st.page_link("pages/seaside_generator.py", label="🌊 Seaside Generator", icon="🌊")
-    st.page_link("pages/smalltalk_refactorer.py", label="🔧 ST Refactorer", icon="🔧")
-    st.page_link("pages/smalltalk_meta.py", label="✨ ST Metaprogramming", icon="✨")
-    st.page_link("pages/image_browser.py", label="🔍 Image Browser", icon="🔍")
-    st.page_link("pages/smalltalk_snippets.py", label="📚 ST Snippets", icon="📚")
-    st.page_link("pages/smalltalk_ruby_converter.py", label="🔄 ST↔Ruby Converter", icon="🔄")
-    
-    st.caption("Rails Tools")
-    st.page_link("pages/rails_scaffold.py", label="⚡ Rails Scaffold", icon="⚡")
-    st.page_link("pages/rails_debugger.py", label="🐞 Rails Debugger", icon="🐞")
-    st.page_link("pages/ruby_profiler.py", label="⚡ Ruby Performance Profiler", icon="⚡")
-    st.page_link("pages/rails_system_tests.py", label="🧪 Rails System Tests", icon="🧪")
-    st.page_link("pages/ruby_pattern_matching.py", label="🎯 Pattern Matching Explorer", icon="🎯")
-    st.page_link("pages/ruby_ractors.py", label="⚡ Concurrency Advisor", icon="⚡")
-    st.page_link("pages/rails_graphql.py", label="🚀 GraphQL API Builder", icon="🚀")
-    st.page_link("pages/ruby_memory_optimizer.py", label="🧠 Memory Optimizer", icon="🧠")
-    st.page_link("pages/view_components.py", label="🧩 View Components", icon="🧩")
-    st.page_link("pages/ruby_c_extensions.py", label="🛠️ C Extensions", icon="🛠️")
-    st.page_link("pages/rails_upgrader.py", label="🆙 Rails Upgrader", icon="🆙")
-    st.page_link("pages/ruby_katas.py", label="🥋 Ruby Katas", icon="🥋")
-    
-    st.divider()
-    st.page_link("pages/regex_tool.py", label="🔍 Regex Generator", icon="🔍")
-    st.page_link("pages/error_tool.py", label="🐞 Error Decoder", icon="🐞")
-    st.page_link("pages/exception_advisor.py", label="🛡️ Exception Advisor", icon="🛡️")
-    st.page_link("pages/crash_analyzer.py", label="🚨 Crash Analyzer", icon="🚨")
-    st.page_link("pages/knowledge_lib.py", label="📚 Knowledge Library", icon="📚")
-    st.page_link("pages/help_guide.py", label="❓ Help Guide", icon="❓")
-    
-    st.divider()
-    if st.button("🧙‍♂️ Tutorial", use_container_width=True):
-        st.switch_page("pages/onboarding_wizard.py")
-# --- Main Dashboard ---
-st.title("🧠 TuoKit - AI Developer Portal")
-st.caption("Central hub for your AI-powered development tools")
+# Apply modern theme
+apply_modern_theme()
 
-# Status Cards
-col1, col2, col3 = st.columns(3)
-with col1:
-    status = OllamaManager.get_status() if "ollama_status" not in st.session_state else st.session_state.ollama_status
-    status_icon = "✅" if status["running"] else "❌"
-    st.metric("Ollama Status", f"{status_icon} {'Running' if status['running'] else 'Stopped'}")
-    
-with col2:
-    st.metric("Loaded Models", status["model_count"])
-    
-with col3:
-    knowledge_count = st.session_state.db.get_knowledge_count() if st.session_state.db else 0
-    st.metric("Knowledge Units", knowledge_count)
+# Add keyboard shortcuts
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keydown', function(e) {
+        // Press / to focus search
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            const searchInput = document.querySelector('[data-testid="stTextInput"] input');
+            if (searchInput) searchInput.focus();
+        }
+    });
+});
+</script>
+""", unsafe_allow_html=True)
 
-# System Stats
-st.subheader("Resource Utilization")
-if "system_stats" in st.session_state:
-    stats = st.session_state.system_stats
-    col1, col2 = st.columns(2)
-    with col1:
-        st.progress(float(stats["cpu"].rstrip('%'))/100, text=f"CPU: {stats['cpu']}")    with col2:
-        st.progress(float(stats["memory"].rstrip('%'))/100, text=f"Memory: {stats['memory']}")
-else:
-    st.button("Load System Stats")
+# Modern Navigation Bar
+def render_nav_bar():
+    """Render modern navigation bar with model selector"""
+    # Fixed position nav with model selector
+    nav_placeholder = st.container()
+    with nav_placeholder:
+        st.markdown("""
+        <div style="position: fixed; top: 0; left: 0; right: 0; height: 80px; 
+             background: rgba(20, 20, 30, 0.95); backdrop-filter: blur(20px); 
+             border-bottom: 1px solid rgba(255, 255, 255, 0.1); z-index: 100;">
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Create columns for layout
+        col1, col2, col3 = st.columns([2, 2, 3])
+        
+        with col1:
+            st.markdown("""
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 2rem;">🚀</span>
+                <span class="gradient-text" style="font-size: 1.5rem; font-weight: 700;">TuoKit</span>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div style="margin-top: 25px;">
+                <span style="color: #9e9e9e;">{get_tool_count()} tools • {get_category_count()} categories</span>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            # Dynamic model selector
+            with st.container():
+                ModelManager.render_model_selector(
+                    key="main_nav_model",
+                    help_text="AI model for all tools"
+                )
+    
+    # Add spacer for fixed nav
+    st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
 
-# Recent Activity
-st.subheader("Recent Activity")
-if "recent_queries" not in st.session_state:
+# Command Palette
+def render_command_palette():
+    """Render command palette overlay"""
+    if st.session_state.show_command_palette:
+        with st.container():
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.markdown("""
+                <div class="command-palette" style="margin-top: 2rem;">
+                    <h3 style="color: white; margin-bottom: 1rem;">🔍 Quick Search</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                search = st.text_input(
+                    "Search tools",
+                    placeholder="Type to search tools or commands...",
+                    key="command_search",
+                    label_visibility="collapsed"
+                )
+                
+                if search:
+                    results = search_tools(search)
+                    if results:
+                        for result in results[:5]:
+                            if st.button(
+                                f"{result['icon']} {result['name']} - {result['description'][:50]}...",
+                                key=f"cmd_{result['id']}",
+                                use_container_width=True
+                            ):
+                                st.session_state.show_command_palette = False
+                                st.switch_page(f"pages/{result['file']}")
+                    else:
+                        st.info("No tools found matching your search")
+                
+                if st.button("Close (Esc)", key="close_cmd"):
+                    st.session_state.show_command_palette = False
+                    st.rerun()
+
+# Tool Card Component
+def render_tool_card(tool_id, tool_info, category_color="#1976d2"):
+    """Render a modern tool card"""
+    # Get usage stats if database is available
+    uses_today = 0
     if st.session_state.db:
-        st.session_state.recent_queries = st.session_state.db.get_recent_queries()
+        try:
+            uses_today = st.session_state.db.get_tool_usage_count(tool_id)
+        except:
+            pass
+    
+    card_html = f"""
+    <div class="tool-card" style="height: 100%;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem;">{tool_info['icon']}</div>
+        <h3 style="color: white; margin-bottom: 0.5rem;">{tool_info['name']}</h3>
+        <p style="color: #9e9e9e; margin-bottom: 1rem; min-height: 3rem;">{tool_info['description']}</p>
+        <div style="display: flex; gap: 1rem; color: #666; font-size: 0.875rem;">
+            <span>⚡ {uses_today} uses</span>
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+    
+    if st.button("Open Tool", key=f"open_{tool_id}", use_container_width=True):
+        st.switch_page(f"pages/{tool_info['file']}")
+
+# Main App
+render_nav_bar()
+
+# Hero Section
+render_hero_section()
+
+# Featured: SQL Toolkit Pro
+st.markdown("""
+<div style="background: linear-gradient(135deg, #1976d2, #1565c0); border-radius: 12px; 
+     padding: 2rem; margin: 2rem 0; text-align: center;">
+    <h2 style="color: white; margin-bottom: 1rem;">✨ Featured: SQL Toolkit Pro</h2>
+    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; margin-bottom: 1.5rem;">
+        Now with 11 powerful SQL tools - Generate, Format, Optimize, Convert to Code & more!
+    </p>
+    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🛢️</div>
+            <span style="color: rgba(255, 255, 255, 0.8);">SQL Generation</span>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔧</div>
+            <span style="color: rgba(255, 255, 255, 0.8);">Query Optimization</span>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💻</div>
+            <span style="color: rgba(255, 255, 255, 0.8);">Code Conversion</span>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
+            <span style="color: rgba(255, 255, 255, 0.8);">Documentation</span>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+if st.button("🚀 Open SQL Toolkit", key="featured_sql", use_container_width=False, type="primary"):
+    st.switch_page("pages/sql_toolkit_modern.py")
+
+# Command Bar
+col1, col2, col3 = st.columns([1, 3, 1])
+with col2:
+    st.markdown("""
+    <div class="command-bar" style="background: rgba(30, 30, 40, 0.6); 
+         backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); 
+         border-radius: 12px; padding: 1.5rem; margin-bottom: 3rem; 
+         display: flex; align-items: center; gap: 1rem;">
+        <span style="color: #666; font-size: 1.2rem;">⌘</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Place input over the command bar
+    search_query = st.text_input(
+        "Quick search",
+        placeholder="Quick search: Try 'sql optimize' or 'ruby debug'...",
+        key="quick_search",
+        label_visibility="collapsed"
+    )
+    
+    st.caption("💡 Press `/` to focus • Press `Ctrl+K` for command palette")
+
+# Handle search
+if search_query:
+    results = search_tools(search_query)
+    if results:
+        st.subheader(f"Search Results for '{search_query}'")
+        cols = st.columns(3)
+        for idx, result in enumerate(results[:6]):
+            with cols[idx % 3]:
+                render_tool_card(result['id'], result)
     else:
-        st.session_state.recent_queries = []
-
-if st.session_state.recent_queries:
-    for qid, tool, prompt, timestamp in st.session_state.recent_queries:
-        tool_icon = "💻" if "coder" in tool else "📄"
-        with st.expander(f"{tool_icon} {timestamp} - {tool}"):
-            st.caption(f"Query ID: #{qid}")
-            st.code(prompt[:200] + ("..." if len(prompt) > 200 else ""))
+        st.info("No tools found matching your search")
 else:
-    st.info("No recent activity yet")
+    # Show categories with tool cards
+    for category_name, category_data in NAVIGATION_CATEGORIES.items():
+        st.markdown(f"""
+        <h2 style="font-size: 1.5rem; margin: 2rem 0 1rem 0; color: #ffffff;">
+            {category_data.get('icon', '📁')} {category_name}
+        </h2>
+        <p style="color: #9e9e9e; margin-bottom: 2rem;">{category_data['description']}</p>
+        """, unsafe_allow_html=True)
+        
+        # Display tools in grid
+        tools = list(category_data["tools"].items())
+        cols = st.columns(3)
+        
+        for idx, (tool_id, tool_info) in enumerate(tools):
+            with cols[idx % 3]:
+                render_tool_card(tool_id, tool_info, category_data.get('color', '#1976d2'))
 
-# Quick Start Tools
-st.divider()
-st.subheader("Quick Start Tools")
+# Analytics Section
+if st.session_state.db:
+    st.markdown("""
+    <h2 style="font-size: 1.5rem; margin: 3rem 0 2rem 0; color: #ffffff;">
+        📈 Today's Activity
+    </h2>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_queries = len(st.session_state.db.get_recent_queries(100))
+        st.metric("Total Queries", total_queries)
+    
+    with col2:
+        knowledge_count = st.session_state.db.get_knowledge_count()
+        st.metric("Knowledge Items", knowledge_count)
+    
+    with col3:
+        active_tools = get_tool_count()
+        st.metric("Active Tools", active_tools)
+    
+    with col4:
+        categories = get_category_count()
+        st.metric("Categories", categories)
 
-# First row of tools
-tt_col1, tt_col2, tt_col3 = st.columns(3)
-with tt_col1:
-    if st.button("💡 Explain Code", use_container_width=True):
-        st.switch_page("pages/code_tools.py")
+# Floating Action Button
+st.markdown("""
+<div class="fab" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px;
+     background: linear-gradient(135deg, #1976d2, #4caf50); border-radius: 50%;
+     display: flex; align-items: center; justify-content: center; color: white;
+     font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(25, 118, 210, 0.4);
+     z-index: 999;" onclick="alert('New tool creation coming soon!')">
+    +
+</div>
+""", unsafe_allow_html=True)
 
-with tt_col2:
-    if st.button("📄 Analyze Document", use_container_width=True):
-        st.switch_page("pages/doc_tools.py")
+# Handle command palette toggle
+if st.button("Open Command Palette (Ctrl+K)", key="cmd_palette_btn", type="secondary"):
+    st.session_state.show_command_palette = True
+    st.rerun()
 
-with tt_col3:
-    if st.button("🔍 Regex Generator", use_container_width=True):
-        st.switch_page("pages/regex_tool.py")
-
-# Second row of tools
-tt2_col1, tt2_col2, tt2_col3 = st.columns(3)
-with tt2_col1:
-    if st.button("📚 Knowledge Library", use_container_width=True):
-        st.switch_page("pages/knowledge_lib.py")
-
-with tt2_col2:
-    if st.button("📚 Study Guide", use_container_width=True):
-        st.switch_page("pages/study_guide_generator.py")
-
-with tt2_col3:
-    if st.button("🐞 Error Decoder", use_container_width=True):
-        st.switch_page("pages/error_tool.py")
-
-# Third row of tools
-tt3_col1, tt3_col2, tt3_col3 = st.columns(3)
-with tt3_col1:
-    if st.button("🎓 EduMind", use_container_width=True):
-        st.switch_page("pages/edu_mind.py")
-
-with tt3_col2:
-    if st.button("🛢️ SQL Tools", use_container_width=True):
-        st.switch_page("pages/sql_generator.py")
-
-with tt3_col3:
-    if st.button("🧙‍♂️ Tutorial", use_container_width=True):
-        st.switch_page("pages/onboarding_wizard.py")
-
-# New row for debugging tools
-st.caption("**Debugging & Analysis Tools**")
-dbg_col1, dbg_col2, dbg_col3 = st.columns(3)
-with dbg_col1:
-    if st.button("🚨 Crash Analyzer", use_container_width=True):
-        st.switch_page("pages/crash_analyzer.py")
-
-with dbg_col2:
-    if st.button("🐞 Rails Debugger", use_container_width=True):
-        st.switch_page("pages/rails_debugger.py")
-
-with dbg_col3:
-    pass  # Space for future debugging tool
-
-# Fourth row - SmallTalk & Rails tools
-st.caption("**SmallTalk & Rails Development**")
-tt4_col1, tt4_col2, tt4_col3 = st.columns(3)
-with tt4_col1:
-    if st.button("🧑‍🏫 SmallTalk Explainer", use_container_width=True):
-        st.switch_page("pages/smalltalk_explainer.py")
-
-with tt4_col2:
-    if st.button("⚡ Rails Scaffold", use_container_width=True):
-        st.switch_page("pages/rails_scaffold.py")
-
-with tt4_col3:
-    if st.button("🔄 Code Converter", use_container_width=True):
-        st.switch_page("pages/smalltalk_ruby_converter.py")
-
-# Fifth row - New SmallTalk tools
-tt5_col1, tt5_col2, tt5_col3 = st.columns(3)
-with tt5_col1:
-    if st.button("🏗️ Class Generator", use_container_width=True):
-        st.switch_page("pages/smalltalk_class_gen.py")
-
-with tt5_col2:
-    if st.button("🎨 Morphic UI", use_container_width=True):
-        st.switch_page("pages/morphic_builder.py")
-
-with tt5_col3:
-    if st.button("✨ Metaprogramming", use_container_width=True):
-        st.switch_page("pages/smalltalk_meta.py")
-
-# Sixth row - Ruby Performance & Testing tools
-st.caption("**Ruby Performance & Testing**")
-tt6_col1, tt6_col2, tt6_col3 = st.columns(3)
-with tt6_col1:
-    if st.button("⚡ Ruby Profiler", use_container_width=True):
-        st.switch_page("pages/ruby_profiler.py")
-
-with tt6_col2:
-    if st.button("🧪 System Tests", use_container_width=True):
-        st.switch_page("pages/rails_system_tests.py")
-
-with tt6_col3:
-    if st.button("🎯 Pattern Matching", use_container_width=True):
-        st.switch_page("pages/ruby_pattern_matching.py")
-
-# Seventh row - Advanced Ruby tools
-st.caption("**Advanced Ruby Features**")
-tt7_col1, tt7_col2, tt7_col3 = st.columns(3)
-with tt7_col1:
-    if st.button("⚡ Ractors & Concurrency", use_container_width=True):
-        st.switch_page("pages/ruby_ractors.py")
-
-with tt7_col2:
-    if st.button("🚀 GraphQL Builder", use_container_width=True):
-        st.switch_page("pages/rails_graphql.py")
-
-with tt7_col3:
-    if st.button("🧠 Memory Optimizer", use_container_width=True):
-        st.switch_page("pages/ruby_memory_optimizer.py")
-
-# Eighth row - Professional Ruby Development
-st.caption("**Professional Ruby Development**")
-tt8_col1, tt8_col2, tt8_col3 = st.columns(3)
-with tt8_col1:
-    if st.button("🧩 View Components", use_container_width=True):
-        st.switch_page("pages/view_components.py")
-
-with tt8_col2:
-    if st.button("🛠️ C Extensions", use_container_width=True):
-        st.switch_page("pages/ruby_c_extensions.py")
-
-with tt8_col3:
-    if st.button("🆙 Rails Upgrader", use_container_width=True):
-        st.switch_page("pages/rails_upgrader.py")
-
-# Ninth row - Learning & Training
-st.caption("**Learning & Training**")
-tt9_col1, tt9_col2, tt9_col3 = st.columns(3)
-with tt9_col1:
-    if st.button("🥋 Ruby Katas", use_container_width=True):
-        st.switch_page("pages/ruby_katas.py")
-
-with tt9_col2:
-    pass  # Space for future tool
-
-with tt9_col3:
-    pass  # Space for future tool
+# Render command palette if active
+render_command_palette()
 
 # Footer
-st.divider()
-footer_col1, footer_col2 = st.columns([4, 1])
-with footer_col1:
-    st.caption("TuoKit v1.4.0 | Local AI Development Suite")
-with footer_col2:
-    if st.button("❓ Help", use_container_width=True):
-        st.switch_page("pages/help_guide.py")
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #666; padding: 2rem 0;">
+    <p>Built with ❤️ using Streamlit and AI • TuoKit v1.0</p>
+</div>
+""", unsafe_allow_html=True)

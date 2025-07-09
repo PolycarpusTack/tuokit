@@ -1,0 +1,50 @@
+# TuoKit LLM RAG Configuration
+# Practical defaults for immediate use
+
+# PostgreSQL connection (update with your credentials)
+postgres_connection: "${TUOKIT_DB_URL:-postgresql://localhost:5432/tuokit}"
+
+# Embedding model (lightweight and fast)
+embedding_model: "all-MiniLM-L6-v2"
+
+# Document processing
+chunk_size: 1000
+chunk_overlap: 200
+
+# Web scraping
+scraper_output_dir: "./scraped_kb"
+max_scrape_pages: 100
+scrape_delay: 0.5  # seconds between requests
+
+# Index management
+index_state_file: "./.rag_index_state.json"
+
+# Source directories
+sources:
+  - name: "codebase"
+    path: "./"
+    pattern: "**/*.{py,js,yaml,yml,json}"
+    type: "code"
+  
+  - name: "docs"
+    path: "./docs"
+    pattern: "**/*.{md,pdf,docx,txt}"
+    type: "documentation"
+  
+  - name: "releases"
+    path: "./releases"
+    pattern: "**/*.{pdf,docx,md}"
+    type: "release_notes"
+
+# LLM settings (for answer generation)
+llm:
+  provider: "ollama"
+  model: "deepseek-r1"
+  temperature: 0.1
+  max_tokens: 2000
+
+# Search settings
+search:
+  default_top_k: 10
+  use_reranking: true
+  min_similarity: 0.5

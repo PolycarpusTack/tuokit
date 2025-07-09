@@ -1,0 +1,47 @@
+{
+  "parallel": true,
+  "max_workers": 4,
+  "timeout": 300,
+  "verbose": 1,
+  "coverage": true,
+  "html_report": true,
+  "json_report": true,
+  "skip_slow": false,
+  "mock_ollama": true,
+  "database": {
+    "use_test_db": true,
+    "test_db_path": "test_tuokit.db"
+  },
+  "environment": {
+    "TUOKIT_TEST_MODE": "1",
+    "OLLAMA_HOST": "http://localhost:11434",
+    "PYTHONPATH": ".",
+    "TUOKIT_DB_PATH": "test_tuokit.db"
+  },
+  "skip_categories": [],
+  "skip_files": [
+    "test_files/test_5mb_final.py"
+  ],
+  "slow_tests": [
+    "test_sql_enterprise.py",
+    "test_knowledge_graph.py"
+  ],
+  "test_data": {
+    "sql_schema": "customers(id, name, email)\norders(id, customer_id, amount, order_date)\nproducts(id, name, price, stock)",
+    "test_queries": [
+      "Find top 5 customers by total orders",
+      "Show monthly revenue for 2024",
+      "Get products with low inventory"
+    ],
+    "mock_responses": {
+      "ollama_generate": "SELECT * FROM test_table;",
+      "ollama_list": ["deepseek-coder:6.7b", "llama2:latest"]
+    }
+  },
+  "report_options": {
+    "html_template": "default",
+    "include_output": true,
+    "max_output_length": 1000,
+    "group_by_category": true
+  }
+}

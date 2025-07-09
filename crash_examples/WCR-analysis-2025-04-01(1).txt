@@ -1,0 +1,69 @@
+
+=== CRASH RESOLUTION REPORT ===
+Generated at: 1/4/2025, 21:35:22
+
+ Here is a list of the classes and objects found in the provided code snippet. Note that the code snippet seems to be incomplete, and some classes or objects might be missing their full definition or properties. Also, it appears that the code snippet includes runtime diagnostic information.
+
+1. Machine: A class or object related to machine settings or configurations.
+2. DeviceGroup: A class or object related to device groups.
+3. CharacterSetRestriction: A class or object that restricts character sets for some purposes.
+4. FinancialEntity: A class or object representing a financial entity.
+5. SearchQueryReportNavigatorAppSettings: A class or object that sets up the settings for a search query report navigation application.
+6. DashboardApplicationAppSettings: A class or object that sets up the settings for a dashboard application.
+7. TranslationKeyNavigatorAppSettings: A class or object that sets up the settings for translation key navigation applications.
+8. CountdownClockGadgetSettings: A class or object that sets up the countdown clock gadget settings.
+9. AutomaticCatchUpType: An enumeration representing automatic catch-up types.
+10. CatchUpRestrictionRunTypeLink: A link between catch-up restriction run types and another entity.
+11. BudgetSimulationEditorAppSettings: A class or object that sets up the settings for a budget simulation editor application.
+12. UserIdentification: A class or object related to user identification.
+13. Versions: A class or object representing different versions of an entity.
+14. WorkflowDefinitionDesignerAppSettings: A class or object that sets up the settings for a workflow definition designer application.
+15. PaymentType: An enumeration representing different payment types.
+16. GeneralPreferencesApplicationAppSettingsWHATSON: A class or object that sets up general preferences for an application on WHATSON (presumably, the platform name).
+17. PrototypeGroupNavigatorAppSettings: A class or object that sets up the settings for prototype group navigation applications.
+18. MediaNavigatorAppSettings: A class or object that sets up the settings for media navigator applications.
+19. MediaAssetPlanningStatus: An enumeration representing different planning statuses for media assets.
+20. TransmissionStatus: An enumeration representing transmission statuses.
+21. SubContractType: A class or object representing subcontract types.
+22. Coverage: A class or object representing coverage information.
+23. ProgramGuideNavigatorAppSettings: A class or object that sets up the settings for a program guide navigation application.
+24. ContractCheckingGroup5, 2, 3, 4, 7, and 8: Groups of contract checking classes or objects (with IDs 5, 2, 3, 4, 7, and 8).
+25. UnderlyingRightTransmissionPeriod: A class or object representing underlying right transmission periods.
+26. TermOfExclusivity: A class or object representing term of exclusivity for contracts.
+27. ContractTypePhaseLink: A link between contract types and phases.
+28. ExternalWorkflowURL: A URL for external workflows.
+29. TransmissionPeriod: A period associated with transmission events, likely a part of a larger contract or agreement.
+30. FirstRunAndDateBasedAmortizationDateOrigin: A class or object representing the date origin for first run and date-based amortization.
+31. RunRating: A class or object representing ratings for runs (possibly related to media content).
+32. ProductionMode: An enumeration representing different production modes for media content.
+33. MediaAssetNavigatorAppSettings: A class or object that sets up the settings for media asset navigation applications.
+34. PersonStatus: An enumeration representing the statuses of people involved in the system (e.g., users, staff members).
+35. UserWithFunctionalitiesWHATSON_WOnPressTarget_pressTargets_Link: A link between users and their functionalities on WHATSON, connected to press targets (presumably some kind of media content or events).
+36. HighlightedTxCollectionType: An enumeration representing different types of highlighted transaction collections.
+37. ContractPhase: A class or object representing phases of contracts.
+38. MediaAsset: A class or object representing media assets, possibly belonging to larger contracts or agreements.
+39. TrailerGridPlannerAppSettings_period: A period setting for a trailer grid planner application settings.
+40. Trailer: A class or object representing trailers (likely short promotional videos) for media content.
+41. Contract: A class or object representing contracts between parties, possibly associated with underlying right transmissions and other agreements.
+42. SubContract: A class or object representing subcontracts, likely parts of larger contracts or agreements.
+43. TransportStream: A class or object related to transport streams for media content distribution.
+44. Service: A class or object representing services, possibly associated with media content distribution.
+45. Network: A class or object representing networks involved in media content distribution.
+
+=== DIAGNOSTIC OVERVIEW REPORT ===
+Generated at: 1/4/2025, 21:35:22
+
+ This log appears to be a collection of settings and app configurations for various media-related applications, possibly related to TV guide data, media assets management, user permissions, and workflows. Here's a brief overview of some key components:
+
+1. Various `PGPublicationSystem` and `PSIUserIdentification` settings, suggesting they might be related to managing user accounts for a publication system.
+
+2. Settings for different types of media assets (e.g., `MM2MediaAssetNavigatorAppSettings`, `MM2MediaAssetPlanningStatus`) and their navigation applications, indicating that these systems handle media asset management.
+
+3. Workflow-related configurations like `WFWorkflowDefinitionDesignerAppSettings` which may help in designing custom workflows for processing media assets or other tasks.
+
+4. Settings related to catch-up restrictions (e.g., `PLTxAutomaticCatchUpType`, `CM2CatchUpRestrictionRunTypeLink`) and subcontract types (e.g., `CM2SubContractType`), suggesting that there is support for managing the rights, scheduling, and distribution of content across different platforms or channels.
+
+5. User-facing applications like `WOnGeneralPreferencesApplicationAppSettingsWHATSON`, which may allow users to customize their experiences within the application.
+
+6. The log includes a timestamp (`2024/4/2==16:15:22`) and an "END RUNTIME DIAGNOSTIC DUMP" note, indicating that this is a snapshot of the system's state at a specific moment in time.
+          

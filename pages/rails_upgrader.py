@@ -1,11 +1,21 @@
 # pages/rails_upgrader.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails Upgrader - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 
 def generate_upgrade_path(from_ver, to_ver, project_details):
     """Generate Rails upgrade roadmap"""
     return safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Upgrade from Rails {from_ver} to {to_ver} | Project: {project_details}",
         system=(
             "Provide detailed roadmap:\n"
@@ -21,7 +31,7 @@ def generate_upgrade_path(from_ver, to_ver, project_details):
 def analyze_gemfile(gemfile_content):
     """Analyze Gemfile for upgrade compatibility"""
     return safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Analyze Gemfile for Rails upgrade compatibility:\n{gemfile_content}",
         system="Identify gems that may cause issues during upgrade and suggest alternatives"
     )['response']
@@ -29,7 +39,7 @@ def analyze_gemfile(gemfile_content):
 def generate_upgrade_script(from_ver, to_ver):
     """Generate upgrade automation script"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Generate Rails upgrade script from {from_ver} to {to_ver}",
         system="Create bash/rake script to automate common upgrade tasks"
     )['response']
@@ -109,7 +119,7 @@ def show():
                 else:
                     # General gem compatibility info
                     gem_compat = safe_ollama_generate(
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=f"Common gem compatibility issues upgrading Rails {from_ver} to {to_ver}",
                         system="List gems that commonly cause issues and their solutions"
                     )['response']
@@ -156,7 +166,7 @@ end
                 # Upgrade phases
                 st.subheader("Recommended Phases")
                 phases = safe_ollama_generate(
-                    model="deepseek-r1:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Break down Rails {from_ver} to {to_ver} upgrade into phases",
                     system="Create 4-6 phases with clear milestones"
                 )['response']
@@ -168,7 +178,7 @@ end
                 # Version-specific changes
                 with st.expander(f"Rails {to_ver} Key Changes", expanded=True):
                     changes = safe_ollama_generate(
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=f"List key changes and new features in Rails {to_ver}",
                         system="Focus on breaking changes and new capabilities"
                     )['response']
@@ -240,7 +250,7 @@ end
                 if db.connected:
                     query_id = db.log_query(
                         tool="rails_upgrade",
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=f"{from_ver}→{to_ver} | {project_details}",
                         response=plan,
                         metadata={

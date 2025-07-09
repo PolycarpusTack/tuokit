@@ -31,7 +31,7 @@ class ComponentBuilder:
   
   private
   
-  {'def variant_classes
+  {'''def variant_classes
     variants[@variant]
   end
   
@@ -41,25 +41,25 @@ class ComponentBuilder:
       secondary: "btn-secondary",
       danger: "btn-danger"
     }
-  end' if 'Variants' in features else ''}
+  end''' if 'Variants' in features else ''}
 end""",
             
             "template": f"""<div class="{component_name.lower()} {{{{ component_classes }}}}" {{{{ stimulus_attributes }}}}>
-  {'{{% if header %}}
+  {'''{{% if header %}}
   <div class="component-header">
     {{{{ header }}}}
   </div>
-  {{% end %}}' if 'Slots' in features else ''}
+  {{% end %}}''' if 'Slots' in features else ''}
   
   <div class="component-body">
     {{{{ content }}}}
   </div>
   
-  {'{{% if footer %}}
+  {'''{{% if footer %}}
   <div class="component-footer">
     {{{{ footer }}}}
   </div>
-  {{% end %}}' if 'Slots' in features else ''}
+  {{% end %}}''' if 'Slots' in features else ''}
 </div>""",
             
             "stimulus": f"""import {{ Controller }} from "@hotwired/stimulus"
@@ -71,7 +71,7 @@ export default class extends Controller {{
     console.log("{component_name} connected")
   }}
   
-  {'async load() {
+  {'''async load() {
     this.showLoader()
     try {
       const response = await fetch(this.data.get("url"))
@@ -88,7 +88,7 @@ export default class extends Controller {{
   
   hideLoader() {
     this.loaderTarget.classList.add("hidden")
-  }' if 'Loading States' in features else ''}
+  }''' if 'Loading States' in features else ''}
 }}""",
             
             "preview": f"""class {component_name}Preview < ViewComponent::Preview
@@ -97,24 +97,24 @@ export default class extends Controller {{
     render {component_name}.new
   end
   
-  {'# With slots
+  {'''# With slots
   def with_slots
-    render ' + component_name + '.new do |component|
+    render ''' + component_name + '''.new do |component|
       component.header { "Header Content" }
       component.footer { "Footer Content" }
       "Main Content"
     end
-  end' if 'Slots' in features else ''}
+  end''' if 'Slots' in features else ''}
   
-  {'# Variants
+  {'''# Variants
   def variants
-    render ' + component_name + '.new(variant: :primary)
-  end' if 'Variants' in features else ''}
+    render ''' + component_name + '''.new(variant: :primary)
+  end''' if 'Variants' in features else ''}
   
-  {'# Loading state
+  {'''# Loading state
   def loading
-    render ' + component_name + '.new(loading: true)
-  end' if 'Loading States' in features else ''}
+    render ''' + component_name + '''.new(loading: true)
+  end''' if 'Loading States' in features else ''}
 end"""
         }
         
@@ -138,7 +138,7 @@ RSpec.describe {component_name}, type: :component do
     expect(page).to have_css(".{component_name.lower()}")
   end
   
-  {'describe "variants" do
+  {'''describe "variants" do
     %i[primary secondary danger].each do |variant|
       context "when variant is #{variant}" do
         let(:options) { { variant: variant } }
@@ -149,9 +149,9 @@ RSpec.describe {component_name}, type: :component do
         end
       end
     end
-  end' if 'Variants' in features else ''}
+  end''' if 'Variants' in features else ''}
   
-  {'describe "slots" do
+  {'''describe "slots" do
     it "renders header slot" do
       render_inline(component) do |c|
         c.header { "Test Header" }
@@ -160,9 +160,9 @@ RSpec.describe {component_name}, type: :component do
       expect(page).to have_content("Test Header")
       expect(page).to have_css(".component-header")
     end
-  end' if 'Slots' in features else ''}
+  end''' if 'Slots' in features else ''}
   
-  {'describe "accessibility" do
+  {'''describe "accessibility" do
     it "has proper ARIA attributes" do
       render_inline(component)
       expect(page).to have_css("[role]")
@@ -172,7 +172,7 @@ RSpec.describe {component_name}, type: :component do
       render_inline(component)
       # Add specific heading tests
     end
-  end' if 'I18n Support' in features else ''}
+  end''' if 'I18n Support' in features else ''}
 end"""
     
     @staticmethod

@@ -1,5 +1,15 @@
 # pages/ruby_katas.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby Katas - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 import json
 import random
@@ -7,7 +17,7 @@ import random
 def generate_kata(level, topic, focus_area=None):
     """Generate coding kata with tests"""
     kata = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Create {level} kata about {topic}" + (f" focusing on {focus_area}" if focus_area else ""),
         system=(
             "Structure:\n"
@@ -21,13 +31,13 @@ def generate_kata(level, topic, focus_area=None):
     )['response']
     
     solution = safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Solution for kata: {kata}",
         system="Implement solution with comments explaining approach and complexity"
     )['response']
     
     hints = safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Generate 3 progressive hints for kata: {kata}",
         system="Hints should guide without revealing solution"
     )['response']
@@ -37,7 +47,7 @@ def generate_kata(level, topic, focus_area=None):
 def analyze_solution(kata, user_code):
     """Analyze user's solution"""
     return safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Analyze this solution:\nKata: {kata}\nSolution: {user_code}",
         system="Evaluate correctness, efficiency, style, and suggest improvements"
     )['response']
@@ -172,7 +182,7 @@ def show():
                 if db.connected:
                     query_id = db.log_query(
                         tool="ruby_katas",
-                        model="deepseek-r1:latest",
+                        model=ModelManager.get_default_model(),
                         prompt=f"{level} {topic} - {focus_area}",
                         response=kata_data['kata'],
                         metadata={
@@ -193,7 +203,7 @@ def show():
                 
                 # Solution explanation
                 explanation = safe_ollama_generate(
-                    model="deepseek-r1:latest",
+                    model=ModelManager.get_default_model(),
                     prompt=f"Explain the solution approach: {kata_data['solution']}",
                     system="Focus on algorithm, time/space complexity, and Ruby idioms used"
                 )['response']

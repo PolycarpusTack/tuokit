@@ -4,6 +4,16 @@ Generates complete Rails models with migrations, validations, and tests
 """
 
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails Model Gen - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils.ollama import OllamaToolBase
 from utils.database import DatabaseManager
 
@@ -13,7 +23,7 @@ class RailsModelGenerator(OllamaToolBase):
     def __init__(self):
         super().__init__(
             tool_name="rails_model_gen",
-            default_model="deepseek-coder:6.7b"
+            default_model=ModelManager.get_default_model()
         )
     
     def generate_model(self, description: str, test_framework: str = "RSpec",

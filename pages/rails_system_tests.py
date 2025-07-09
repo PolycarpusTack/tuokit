@@ -1,11 +1,23 @@
 # pages/rails_system_tests.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Rails System Tests - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
+if "a11y" not in st.session_state:
+    st.session_state.a11y = None
 from utils import DatabaseManager, safe_ollama_generate
 
 def generate_system_test(feature_description, test_framework="RSpec"):
     """Generate comprehensive system tests with accessibility checks"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Generate {test_framework} system test for: {feature_description}",
         system=(
             "Include:\n"
@@ -70,7 +82,7 @@ def show():
                     if db.connected:
                         query_id = db.log_query(
                             tool="system_tests",
-                            model="deepseek-coder:latest",
+                            model=ModelManager.get_default_model(),
                             prompt=feature,
                             response=test_code,
                             metadata={"tags": ["rails", "testing", test_framework.lower()]}

@@ -4,6 +4,16 @@ Helps navigate and query the SmallTalk image environment
 """
 
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Image Browser - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils.ollama import OllamaToolBase
 from utils.database import DatabaseManager
 
@@ -13,7 +23,7 @@ class SmallTalkImageBrowser(OllamaToolBase):
     def __init__(self):
         super().__init__(
             tool_name="image_browser",
-            default_model="deepseek-r1:6.7b"
+            default_model=ModelManager.get_default_model()
         )
         
         self.common_queries = {

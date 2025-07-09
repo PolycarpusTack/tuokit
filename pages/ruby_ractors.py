@@ -1,12 +1,22 @@
 # pages/ruby_ractors.py
 import streamlit as st
+from utils.model_manager import ModelManager
+
+# Page configuration
+st.set_page_config(
+    page_title="Ruby Ractors - TuoKit",
+    page_icon="🚀",
+    layout="wide"
+)
+
+# Initialize session state
 from utils import DatabaseManager, safe_ollama_generate
 import re
 
 def ractor_implementation(task):
     """Generate thread-safe Ractor implementation"""
     return safe_ollama_generate(
-        model="deepseek-coder:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Implement Ractors for: {task}",
         system=(
             "Create complete solution with:\n"
@@ -22,7 +32,7 @@ def ractor_implementation(task):
 def concurrency_advice(code):
     """Provide concurrency optimization advice"""
     return safe_ollama_generate(
-        model="deepseek-r1:latest",
+        model=ModelManager.get_default_model(),
         prompt=f"Optimize concurrency for:\n```ruby\n{code}\n```",
         system=(
             "Suggest:\n"
@@ -156,7 +166,7 @@ def show():
                     if db.connected:
                         query_id = db.log_query(
                             tool="ruby_concurrency",
-                            model="deepseek-r1:latest",
+                            model=ModelManager.get_default_model(),
                             prompt=code[:500],
                             response=advice,
                             metadata={"tags": ["ruby", "concurrency", "ractors"]}

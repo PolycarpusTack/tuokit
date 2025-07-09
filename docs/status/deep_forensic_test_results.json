@@ -1,0 +1,166 @@
+{
+  "overview": {
+    "total_chunks": 1,
+    "file_size": 1100
+  },
+  "critical_findings": {
+    "immediate_threats": [],
+    "high_impact_issues": [],
+    "security_critical": [],
+    "performance_critical": [
+      {
+        "type": "memory_pressure",
+        "severity": "CRITICAL",
+        "affected_percentage": 100.0,
+        "recommendation": "Urgent memory optimization required"
+      }
+    ],
+    "action_priority": [
+      {
+        "type": "memory_pressure",
+        "severity": "CRITICAL",
+        "affected_percentage": 100.0,
+        "recommendation": "Urgent memory optimization required"
+      }
+    ]
+  },
+  "crash_analysis": {
+    "error_taxonomy": {
+      "null_pointer": [
+        {
+          "chunk": 0,
+          "position": "0-1100",
+          "severity": "MEDIUM"
+        }
+      ],
+      "memory_exhaustion": [
+        {
+          "chunk": 0,
+          "position": "0-1100",
+          "severity": "MEDIUM"
+        }
+      ],
+      "sql_injection": [
+        {
+          "chunk": 0,
+          "position": "0-1100",
+          "severity": "HIGH"
+        }
+      ]
+    },
+    "error_chains": [],
+    "root_cause_candidates": [],
+    "impact_assessment": {
+      "data_loss_risk": "MEDIUM",
+      "service_disruption": {
+        "severity": "UNKNOWN",
+        "affected_services": [],
+        "downtime_estimate": "Unknown"
+      },
+      "security_impact": "MEDIUM",
+      "user_impact": {
+        "affected_users": "Unknown",
+        "user_experience": "Unknown",
+        "business_impact": "Unknown"
+      }
+    },
+    "recovery_analysis": {
+      "recovery_attempted": false,
+      "recovery_successful": false,
+      "recovery_time": "Unknown"
+    }
+  },
+  "performance_analysis": {
+    "bottlenecks": [
+      {
+        "type": "memory_pressure",
+        "severity": "CRITICAL",
+        "affected_percentage": 100.0,
+        "recommendation": "Urgent memory optimization required"
+      }
+    ],
+    "resource_usage": {
+      "memory_usage_percent": 85,
+      "cpu_usage_percent": 95,
+      "disk_usage_percent": 0,
+      "thread_count": 250
+    },
+    "scalability_issues": [],
+    "optimization_opportunities": []
+  },
+  "security_analysis": {
+    "vulnerabilities": [],
+    "exposed_secrets": [],
+    "unsafe_operations": [],
+    "compliance_issues": [],
+    "security_score": 100
+  },
+  "code_quality": {
+    "anti_patterns": [],
+    "technical_debt": [],
+    "maintainability_issues": [],
+    "best_practice_violations": []
+  },
+  "predictive_insights": {
+    "future_risks": [
+      {
+        "risk": "memory_pressure will cause system failure",
+        "timeframe": "1-7 days",
+        "probability": "HIGH",
+        "impact": "Service outage"
+      }
+    ],
+    "trending_issues": [],
+    "capacity_projections": {
+      "memory": {
+        "current": 85,
+        "projected_exhaustion": "< 30 days",
+        "recommendation": "Increase memory allocation"
+      }
+    },
+    "preventive_measures": [
+      {
+        "measure": "Implement comprehensive error monitoring",
+        "rationale": "Multiple error types detected",
+        "priority": "HIGH"
+      },
+      {
+        "measure": "Performance testing and capacity planning",
+        "rationale": "Multiple bottlenecks identified",
+        "priority": "HIGH"
+      }
+    ]
+  },
+  "knowledge_integration": {
+    "similar_incidents": [],
+    "known_solutions": [],
+    "best_practices": [],
+    "lessons_learned": [],
+    "search_patterns": [
+      "null_pointer",
+      "memory_exhaustion",
+      "sql_injection"
+    ],
+    "integration_ready": true
+  },
+  "visual_analysis": {
+    "error_patterns": "graph TD\n    subgraph \"Detected Patterns\"\n    CAT0[\"ERROR\"]:::category\n    P0_0[\"null_pointer\"]:::pattern\n    CAT0 --> P0_0\n    P0_1[\"memory_exhaustion\"]:::pattern\n    CAT0 --> P0_1\n    P0_2[\"sql_injection\"]:::pattern\n    CAT0 --> P0_2\n    end\n    \n    classDef category fill:#64b5f6,stroke:#1976d2,stroke-width:2px\n    classDef pattern fill:#aed581,stroke:#689f38,stroke-width:1px\n",
+    "analysis_summary": "graph LR\n    subgraph \"Crash Analysis Summary\"\n    A[File Analyzed] --> B[Root Cause Identified]\n    B --> C[Severity: HIGH]\n    C --> D[Confidence: 80%]\n    \n    B --> E[Immediate Actions]\n    B --> F[Long-term Fixes]\n    \n    style A fill:#e3f2fd,stroke:#1976d2\n    style B fill:#fff3e0,stroke:#f57c00\n    style C fill:#ffebee,stroke:#d32f2f\n    style D fill:#e8f5e9,stroke:#388e3c\n    end\n"
+  },
+  "comprehensive_recommendations": {
+    "immediate_actions": [
+      "Review critical issue"
+    ],
+    "short_term": [],
+    "long_term": [
+      "Implement predictive monitoring"
+    ],
+    "architectural": [],
+    "process_improvements": []
+  },
+  "confidence": 0.8333333333333334,
+  "formatted_output": "# Deep Forensic Analysis Report\n\n## Executive Overview\n- **Total Chunks Analyzed**: 1\n- **File Size**: 1,100 bytes\n- **Overall Confidence**: 83.3%\n- **Analysis Dimensions**: 9\n\n## Critical Findings Summary\n\n### Immediate Threats (0)\n\n### Security Critical (0)\n\n## Crash Analysis\n\n### Error Distribution\n- **null_pointer**: 1 occurrences\n- **memory_exhaustion**: 1 occurrences\n- **sql_injection**: 1 occurrences\n\n### Impact Assessment\n- **Data Loss Risk**: MEDIUM\n- **Service Disruption**: UNKNOWN\n- **Security Impact**: MEDIUM\n- **User Impact**: Unknown\n\n## Performance Analysis\n\n### Bottlenecks Identified\n- **memory_pressure** (CRITICAL): Urgent memory optimization required\n\n## Security Analysis\n- **Security Score**: 100/100\n- **Vulnerabilities Found**: 0\n- **Exposed Secrets**: 0\n\n## Predictive Insights\n\n### Future Risks\n- **memory_pressure will cause system failure** - Timeframe: 1-7 days (Probability: HIGH)\n\n## Comprehensive Recommendations\n\n### Immediate Actions Required\n1. Review critical issue\n\n## Visual Analysis\n\n### Error Patterns\n```mermaid\ngraph TD\n    subgraph \"Detected Patterns\"\n    CAT0[\"ERROR\"]:::category\n    P0_0[\"null_pointer\"]:::pattern\n    CAT0 --> P0_0\n    P0_1[\"memory_exhaustion\"]:::pattern\n    CAT0 --> P0_1\n    P0_2[\"sql_injection\"]:::pattern\n    CAT0 --> P0_2\n    end\n    \n    classDef category fill:#64b5f6,stroke:#1976d2,stroke-width:2px\n    classDef pattern fill:#aed581,stroke:#689f38,stroke-width:1px\n\n```\n\n### Analysis Summary\n```mermaid\ngraph LR\n    subgraph \"Crash Analysis Summary\"\n    A[File Analyzed] --> B[Root Cause Identified]\n    B --> C[Severity: HIGH]\n    C --> D[Confidence: 80%]\n    \n    B --> E[Immediate Actions]\n    B --> F[Long-term Fixes]\n    \n    style A fill:#e3f2fd,stroke:#1976d2\n    style B fill:#fff3e0,stroke:#f57c00\n    style C fill:#ffebee,stroke:#d32f2f\n    style D fill:#e8f5e9,stroke:#388e3c\n    end\n\n```\n\n---\n*Deep forensic analysis completed in 0.00 seconds*",
+  "processing_time": 0.029435396194458008,
+  "analysis_method": "Deep Forensic Analysis",
+  "filename": "test_crash.log"
+}

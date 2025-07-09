@@ -1,7 +1,10 @@
 import streamlit as st
-from utils import DatabaseManager, safe_ollama_generate, get_contextual_help
+
+# Initialize session state
+from utils import DatabaseManager, safe_ollama_generate, get_contextual_help, get_available_models
 import re
 
+from utils.model_manager import ModelManager
 # Page configuration
 st.set_page_config(
     page_title="TuoKit - Code Tools",
@@ -75,10 +78,12 @@ st.caption("AI-powered code explanation, debugging, and generation")
 # Tool selection
 tool = st.radio("Select Tool:", ["Explain Code", "Debug Code", "Generate Code"], horizontal=True)
 
-# Shared model selection
+# Shared model selection - dynamically load from Ollama
+available_models = get_available_models()
 model = st.selectbox("AI Model", 
-                    ["deepseek-coder:6.7b", "deepseek-r1:6.7b"],
-                    index=0)
+                    available_models,
+                    index=0,
+                    help="Models currently available in Ollama")
 
 if tool == "Explain Code":
     st.subheader("Code Explanation")
@@ -96,7 +101,8 @@ if tool == "Explain Code":
     if st.button("Analyze Code", type="primary"):
         if not code.strip():
             st.warning("Please enter some code")
-        else:            try:
+        else:
+            try:
                 with st.spinner("Analyzing code structure..."):
                     explanation = explain_code(code, model)
                 
@@ -184,7 +190,8 @@ elif tool == "Generate Code":
                         prompt=description,
                         response=generated
                     )
-                    st.session_state.last_query_id = query_id                    st.success("✅ Code generated and saved")
+                    st.session_state.last_query_id = query_id
+                    st.success("✅ Code generated and saved")
             except Exception as e:
                 st.error(f"Error: {e}")
 

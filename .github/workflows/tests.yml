@@ -1,0 +1,167 @@
+name: TuoKit Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-cov
+    
+    - name: Run linting
+      run: |
+        pip install flake8 black
+        # Check code style
+        black --check .
+        # Check for errors
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    
+    - name: Run unit tests
+      run: |
+        python test_runner.py --category utilities --json-report --timeout 300
+      env:
+        TUOKIT_TEST_MODE: 1
+        MOCK_OLLAMA: 1
+    
+    - name: Run SQL tests
+      run: |
+        python test_runner.py --category sql --json-report
+      env:
+        TUOKIT_TEST_MODE: 1
+        MOCK_OLLAMA: 1
+    
+    - name: Run tool tests
+      run: |
+        python test_runner.py --category tools --json-report
+      env:
+        TUOKIT_TEST_MODE: 1
+        MOCK_OLLAMA: 1
+    
+    - name: Run integration tests
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+      run: |
+        python test_runner.py --category agent --json-report
+      env:
+        TUOKIT_TEST_MODE: 1
+        MOCK_OLLAMA: 1
+    
+    - name: Generate coverage report
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+      run: |
+        coverage run -m pytest
+        coverage xml
+        coverage report
+    
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
+        path: |
+          test_report_*.json
+          test_report_*.html
+          coverage.xml
+    
+    - name: Parse test results
+      if: always()
+      run: |
+        python -c "
+        import json
+        import glob
+        import sys
+        
+        # Find latest test report
+        reports = glob.glob('test_report_*.json')
+        if not reports:
+            print('No test reports found')
+            sys.exit(0)
+        
+        with open(sorted(reports)[-1], 'r') as f:
+            results = json.load(f)
+        
+        print(f\"Total: {results['passed'] + results['failed'] + results['errors']}\")
+        print(f\"Passed: {results['passed']}\")
+        print(f\"Failed: {results['failed']}\")
+        print(f\"Errors: {results['errors']}\")
+        
+        # Set exit code based on results
+        if results['failed'] > 0 or results['errors'] > 0:
+            sys.exit(1)
+        "
+
+  ollama-integration:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[ollama]')
+    
+    services:
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Pull Ollama models
+      run: |
+        # Wait for Ollama to start
+        sleep 10
+        # Pull test model
+        curl -X POST http://localhost:11434/api/pull -d '{"name": "tinyllama"}'
+    
+    - name: Run Ollama integration tests
+      run: |
+        python test_runner.py --category ollama --no-mock
+      env:
+        OLLAMA_HOST: http://localhost:11434
+        TUOKIT_TEST_MODE: 1

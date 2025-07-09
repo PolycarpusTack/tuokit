@@ -16,9 +16,9 @@ class KnowledgeGraph:
     
     def load_concepts(self):
         """Load concepts from database or default set"""
-        concepts = db.get_collection("knowledge_graph")
-        if not concepts:
-            concepts = self.default_concepts()
+        # TODO: Implement database storage for concepts in the future
+        # For now, use default concepts
+        concepts = self.default_concepts()
         self.build_graph(concepts)
     
     def default_concepts(self):

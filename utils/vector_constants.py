@@ -1,0 +1,32 @@
+"""
+Constants for vector search implementation
+"""
+
+# Embedding dimensions
+DEFAULT_EMBEDDING_DIM = 384
+FALLBACK_EMBEDDING_DIM = 384
+
+# Model names
+DEFAULT_EMBEDDING_MODEL = "nomic-embed-text"
+
+# Search parameters
+DEFAULT_SEARCH_LIMIT = 10
+MAX_SEARCH_LIMIT = 100
+MIN_SEARCH_LIMIT = 1
+
+# Similarity thresholds
+SEMANTIC_SEARCH_THRESHOLD = 0.3
+HYBRID_SEARCH_THRESHOLD = 0.4
+DEFAULT_SIMILARITY_THRESHOLD = 0.5
+
+# Processing parameters
+EMBEDDING_BATCH_SIZE = 10
+VECTOR_SEARCH_CHUNK_SIZE = 100
+MAX_TEXT_LENGTH = 2000
+MAX_QUERY_LENGTH = 500
+
+# Cache settings
+CACHE_VERSION = "1.0"
+
+# Database limits
+MAX_KNOWLEDGE_ITEMS_PER_QUERY = 1000
